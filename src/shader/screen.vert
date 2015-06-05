@@ -1,3 +1,7 @@
+#ifdef GL_ES
+#version 100
+#endif
+
 attribute vec2 a_position;
 varying vec2 v_tex_coord;
 

@@ -143,17 +143,9 @@ struct Shader {
 
 	GLuint get_handle() {
 		if (not shader_) {
-			char const *pre = type == GL_FRAGMENT_SHADER?
-					  "#ifdef GL_ES\n"
-					  "precision mediump float;\n"
-					  "#endif\n"
-					  "\n" : "";
-			std::string const src = pre + source_.get();
-			source_ = boost::none;
-
 			shader_ = glCreateShader(type);
-			GLchar const* src_list[] = { src.data() };
-			GLint const src_len_list[] = { static_cast<GLint>(src.size()) };
+			GLchar const* src_list[] = { source_.get().data() };
+			GLint const src_len_list[] = { static_cast<GLint>(source_.get().size()) };
 			glShaderSource(shader_.get(), 1, src_list, src_len_list);
 			glCompileShader(shader_.get());
 
@@ -167,10 +159,12 @@ struct Shader {
 			glGetShaderiv(shader_.get(), GL_COMPILE_STATUS, &compile_stat);
 			if (compile_stat == GL_FALSE) {
 				Output::Error("Shader compile error: %s\nSource:\n%s",
-					      &info.front(), src.c_str());
+					      &info.front(), source_.get().c_str());
 			} else if (info_len > 0) {
 				Output::Debug("Shader compile succeeded: %s", &info.front());
 			}
+
+			source_ = boost::none;
 		}
 		return shader_.get();
 	}
@@ -448,7 +442,7 @@ void prepare_rendering() {
 		Output::Debug("OpenGL Renderer: %s", glGetString(GL_RENDERER));
 		Output::Debug("OpenGL Version: %s", glGetString(GL_VERSION));
 		Output::Debug("GLSL Version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
-		Output::Debug("OpenGL Extensions: %s", glGetString(GL_EXTENSIONS));
+		// Output::Debug("OpenGL Extensions: %s", glGetString(GL_EXTENSIONS));
 	}
 
 	DisplayUi->MakeGLContextCurrent();

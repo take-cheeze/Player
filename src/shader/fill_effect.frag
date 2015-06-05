@@ -1,3 +1,8 @@
+#ifdef GL_ES
+#version 100
+precision mediump float;
+#endif
+
 uniform float u_opacity;
 uniform vec4 u_color;
 uniform vec4 u_tone;
