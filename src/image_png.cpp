@@ -24,7 +24,9 @@
 #include <cstring>
 #include <csetjmp>
 #include <vector>
+#include <ostream>
 
+#include "bitmap.h"
 #include "output.h"
 #include "image_png.h"
 
@@ -240,21 +242,9 @@ static void flush_stream(png_structp out_ptr) {
 	reinterpret_cast<std::ostream*>(png_get_io_ptr(out_ptr))->flush();
 }
 
-bool ImagePNG::WritePNG(std::ostream& os, uint32_t width, uint32_t height, uint32_t* data) {
-	for (size_t i = 0; i < width * height; ++i) {
-		uint32_t const p = data[i];
-		uint8_t* out = reinterpret_cast<uint8_t*>(&data[i]);
-		uint8_t
-			a = (p >> 24) & 0xff, r = (p >> 16) & 0xff,
-			g = (p >>  8) & 0xff, b = (p >>  0) & 0xff;
-		if(a != 0) {
-			r = (r * 255) / a;
-			g = (g * 255) / a;
-			b = (b * 255) / a;
-		}
-		*out++ = r; *out++ = g; *out++ = b; *out++ = a;
-	}
-
+bool ImagePNG::WritePNG(std::ostream& os, Bitmap const& bmp) {
+	size_t const width = bmp.GetWidth(), height = bmp.GetHeight();
+	uint32_t const* data = reinterpret_cast<uint32_t const*>(bmp.GetData());
 	png_structp write = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!write) {
 		Output::Warning("Bitmap::WritePNG: error in png_create_write");
@@ -268,14 +258,13 @@ bool ImagePNG::WritePNG(std::ostream& os, uint32_t width, uint32_t height, uint3
 		return false;
 	}
 
-	png_bytep* ptrs = new png_bytep[height];
+	std::vector<png_bytep> ptrs(height);
 	for (size_t i = 0; i < height; ++i) {
-		ptrs[i] = reinterpret_cast<png_bytep>(&data[width*i]);
+		ptrs[i] = (png_bytep)&data[width*i];
 	}
 
 	if (setjmp(png_jmpbuf(write))) {
 		png_destroy_write_struct(&write, &info);
-		delete [] ptrs;
 		Output::Warning("ImagePNG::WritePNG: error writing PNG file");
 		return false;
 	}
@@ -286,11 +275,10 @@ bool ImagePNG::WritePNG(std::ostream& os, uint32_t width, uint32_t height, uint3
 				 PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
 				 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 	png_write_info(write, info);
-	png_write_image(write, ptrs);
+	png_write_image(write, &ptrs.front());
 	png_write_end(write, NULL);
 
 	png_destroy_write_struct(&write, &info);
-	delete [] ptrs;
 
 	return true;
 }

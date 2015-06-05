@@ -29,7 +29,6 @@
 class Window : public Drawable {
 public:
 	Window();
-	virtual ~Window();
 
 	void Draw();
 
@@ -44,8 +43,6 @@ public:
 	void SetCursorRect(Rect const& ncursor_rect);
 	bool GetActive() const;
 	void SetActive(bool nactive);
-	bool GetVisible() const;
-	void SetVisible(bool nvisible);
 	bool GetPause() const;
 	void SetPause(bool npause);
 	bool GetUpArrow() const;
@@ -60,8 +57,6 @@ public:
 	void SetWidth(int nwidth);
 	int GetHeight() const;
 	void SetHeight(int nheight);
-	int GetZ() const;
-	void SetZ(int nz);
 	int GetOx() const;
 	void SetOx(int nox);
 	int GetOy() const;
@@ -79,16 +74,11 @@ public:
 	void SetOpenAnimation(int frames);
 	void SetCloseAnimation(int frames);
 
-	DrawableType GetType() const;
-
 protected:
-	DrawableType type;
-	unsigned long ID;
 	BitmapRef windowskin, contents;
 	bool stretch;
 	Rect cursor_rect;
 	bool active;
-	bool visible;
 	bool pause;
 	bool closing;
 	bool up_arrow;
@@ -97,7 +87,6 @@ protected:
 	int y;
 	int width;
 	int height;
-	int z;
 	int ox;
 	int oy;
 	int border_x;
@@ -107,18 +96,6 @@ protected:
 	int contents_opacity;
 
 private:
-	BitmapRef
-		background, frame_down,
-		frame_up, frame_left, frame_right, cursor1, cursor2;
-
-	void RefreshBackground();
-	void RefreshFrame();
-	void RefreshCursor();
-
-	bool background_needs_refresh;
-	bool frame_needs_refresh;
-	bool cursor_needs_refresh;
-
 	int cursor_frame;
 	int pause_frame;
 	int animation_frames;

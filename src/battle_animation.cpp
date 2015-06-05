@@ -23,9 +23,11 @@
 #include "filefinder.h"
 #include "cache.h"
 #include "battle_animation.h"
-#include "baseui.h"
+
+#include <boost/bind.hpp>
 
 BattleAnimation::BattleAnimation(int x, int y, const RPG::Animation* animation) :
+	Drawable(TypeDefault, 1500),
 	x(x), y(y), animation(animation), frame(0)
 {
 	const std::string& name = animation->animation_name;
@@ -47,62 +49,18 @@ BattleAnimation::BattleAnimation(int x, int y, const RPG::Animation* animation) 
 #else
 	if (!FileFinder::FindImage("Battle", name).empty()) {
 		FileRequestAsync* request = AsyncHandler::RequestFile("Battle", animation->animation_name);
-		request->Bind(&BattleAnimation::OnBattleSpriteReady, this);
+		request->Bind(boost::bind(&BattleAnimation::OnBattleSpriteReady, this, _1));
 		request->Start();
 	}
 	else if (!FileFinder::FindImage("Battle2", name).empty()) {
 		FileRequestAsync* request = AsyncHandler::RequestFile("Battle2", animation->animation_name);
-		request->Bind(&BattleAnimation::OnBattle2SpriteReady, this);
+		request->Bind(boost::bind(&BattleAnimation::OnBattle2SpriteReady, this, _1));
 		request->Start();
 	}
 	else {
 		Output::Warning("Couldn't find animation: %s", name.c_str());
 	}
 #endif
-
-	Graphics::RegisterDrawable(this);
-}
-
-BattleAnimation::~BattleAnimation() {
-	Graphics::RemoveDrawable(this);
-}
-
-int BattleAnimation::GetZ() const {
-	return 1500;
-}
-
-DrawableType BattleAnimation::GetType() const {
-	return TypeDefault;
-}
-
-void BattleAnimation::Draw() {
-	if (!screen) {
-		// Initialization failed
-		return;
-	}
-
-	if (frame >= (int) animation->frames.size())
-		return;
-
-	const RPG::AnimationFrame& anim_frame = animation->frames[frame];
-
-	std::vector<RPG::AnimationCellData>::const_iterator it;
-	for (it = anim_frame.cells.begin(); it != anim_frame.cells.end(); ++it) {
-		const RPG::AnimationCellData& cell = *it;
-		int sx = cell.cell_id % 5;
-		int sy = cell.cell_id / 5;
-		int size = large ? 128 : 96;
-		Rect src_rect(sx * size, sy * size, size, size);
-		Tone tone(cell.tone_red, cell.tone_green, cell.tone_blue, cell.tone_gray);
-		int opacity = 255 * (100 - cell.transparency) / 100;
-		double zoom = cell.zoom / 100.0;
-		DisplayUi->GetDisplaySurface()->EffectsBlit(
-			x + cell.x, y + cell.y,
-			size / 2, size / 2,
-			*screen, src_rect, 
-			opacity, tone,
-			zoom, zoom);
-	}
 }
 
 void BattleAnimation::Update() {
@@ -136,7 +94,7 @@ void BattleAnimation::OnBattleSpriteReady(FileRequestResult* result) {
 	else {
 		// Try battle2
 		FileRequestAsync* request = AsyncHandler::RequestFile("Battle2", result->file);
-		request->Bind(&BattleAnimation::OnBattle2SpriteReady, this);
+		request->Bind(boost::bind(&BattleAnimation::OnBattle2SpriteReady, this, _1));
 		request->Start();
 	}
 }

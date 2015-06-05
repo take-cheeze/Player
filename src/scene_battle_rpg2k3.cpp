@@ -27,6 +27,7 @@
 #include "graphics.h"
 #include "filefinder.h"
 #include "cache.h"
+#include "font.h"
 #include "game_system.h"
 #include "game_temp.h"
 #include "game_party.h"
@@ -39,6 +40,7 @@
 #include "game_battlealgorithm.h"
 #include "battle_animation.h"
 #include "scene_gameover.h"
+#include <boost/bind.hpp>
 
 Scene_Battle_Rpg2k3::Scene_Battle_Rpg2k3() : Scene_Battle(),
 	battle_action_wait(30),
@@ -112,7 +114,7 @@ void Scene_Battle_Rpg2k3::CreateCursors() {
 	enemy_cursor.reset(new Sprite());
 
 	FileRequestAsync* request = AsyncHandler::RequestFile("System2", Data::system.system2_name);
-	request->Bind(&Scene_Battle_Rpg2k3::OnSystem2Ready, this);
+	request->Bind(boost::bind(&Scene_Battle_Rpg2k3::OnSystem2Ready, this, _1));
 	request->Start();
 }
 
@@ -149,7 +151,7 @@ void Scene_Battle_Rpg2k3::DrawFloatText(int x, int y, int color, const std::stri
 
 	BitmapRef graphic = Bitmap::Create(rect.width, rect.height);
 	graphic->Clear();
-	graphic->TextDraw(-rect.x, -rect.y, color, text);
+	Text::Draw(*graphic, -rect.x, -rect.y, color, text);
 
 	Sprite* floating_text = new Sprite();
 	floating_text->SetBitmap(graphic);

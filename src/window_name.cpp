@@ -19,6 +19,7 @@
 #include <string>
 #include "window_name.h"
 #include "bitmap.h"
+#include "text.h"
 #include "font.h"
 #include "data.h"
 #include "game_system.h"
@@ -29,16 +30,13 @@ Window_Name::Window_Name(int ix, int iy, int iwidth, int iheight) :
 	Window_Base(ix, iy, iwidth, iheight) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
-
-	name.clear();
 
 	Refresh();
 }
 
 void Window_Name::Refresh() {
 	contents->Clear();
-	contents->TextDraw(2, 2, Font::ColorDefault, name);
+	Text::Draw(*contents, 2, 2, Text::ColorDefault, name);
 }
 
 void Window_Name::Set(const std::string& text) {

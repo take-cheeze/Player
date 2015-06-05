@@ -20,8 +20,8 @@
 #include "game_message.h"
 #include "window_battlemessage.h"
 #include "bitmap.h"
-#include "font.h"
 #include "graphics.h"
+#include "text.h"
 
 #include <boost/next_prior.hpp>
 
@@ -30,9 +30,8 @@ Window_BattleMessage::Window_BattleMessage(int ix, int iy, int iwidth, int iheig
 	needs_refresh(true) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
-	visible = false;
+	SetVisible(false);
 	SetZ(9999);
 }
 
@@ -51,32 +50,23 @@ void Window_BattleMessage::Clear() {
 	needs_refresh = true;
 }
 
-void Window_BattleMessage::Refresh() {
-	contents->Clear();
-
-	int contents_y = 2;
-
-	std::vector<std::string>::const_iterator it;
-	int i = 0;
-	for (it = lines.begin(); it != lines.end(); ++it) {
-		contents->TextDraw(0, contents_y, Font::ColorDefault, *it);
-		contents_y += 16;
-
-		++i;
-		if (i > 3) {
-			break;
-		}
-	}
-}
-
 void Window_BattleMessage::Update() {
 	Window_Base::Update();
 	if (needs_refresh) {
 		needs_refresh = false;
-		Refresh();
+
+		contents->Clear();
+
+		std::vector<std::string>::const_iterator it;
+		for (it = lines.begin(); it != lines.end(); ++it) {
+			Text::Draw(*contents, 0, 16 * (it - lines.begin()) + 2, Text::ColorDefault, *it);
+			if ((it - lines.begin()) > 3) {
+				break;
+			}
+		}
 	}
 }
 
 int Window_BattleMessage::GetLineCount() {
-	return (int)lines.size();
+	return lines.size();
 }

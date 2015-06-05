@@ -30,30 +30,19 @@
 class Plane : public Drawable {
 public:
 	Plane();
-	virtual ~Plane();
 
 	void Draw();
 
 	BitmapRef const& GetBitmap() const;
 	void SetBitmap(BitmapRef const& bitmap);
-	bool GetVisible() const;
-	void SetVisible(bool visible);
-	int GetZ() const;
-	void SetZ(int z);
 	int GetOx() const;
 	void SetOx(int ox);
 	int GetOy() const;
 	void SetOy(int oy);
 
-	DrawableType GetType() const;
-
 private:
-	DrawableType type;
-
 	BitmapRef bitmap;
 
-	bool visible;
-	int z;
 	int ox;
 	int oy;
 };

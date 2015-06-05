@@ -22,7 +22,7 @@
 #include "main_data.h"
 #include "util_macro.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 #include "player.h"
 
 #include <cstdio>
@@ -34,7 +34,6 @@ Window_NumberInput::Window_NumberInput(int ix, int iy, int iwidth, int iheight) 
 	plus = true;
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 	cursor_width = 14;
 	SetZ(10001);
 	opacity = 0;
@@ -63,7 +62,7 @@ void Window_NumberInput::Refresh() {
 	for (int i = 0; i < digits_max + (int)show_operator; ++i) {
 		char c[2] = {s[i], '\0'};
 		int x = i * (cursor_width - 2) + (show_operator ? 2 : 12);
-		contents->TextDraw(x, 2, Font::ColorDefault, c);
+		Text::Draw(*contents, x, 2, Text::ColorDefault, c);
 	}
 }
 

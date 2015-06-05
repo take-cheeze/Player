@@ -168,12 +168,6 @@ const std::string& FileRequestAsync::GetPath() const {
 	return path;
 }
 
-int FileRequestAsync::Bind(void(*func)(FileRequestResult*)) {
-	listeners.push_back(std::make_pair(next_id, func));
-
-	return next_id++;
-}
-
 int FileRequestAsync::Bind(boost::function<void(FileRequestResult*)> func) {
 	listeners.push_back(std::make_pair(next_id, func));
 

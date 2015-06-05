@@ -21,42 +21,37 @@
 #include "async_handler.h"
 #include "data.h"
 #include "rpg_terrain.h"
-#include "baseui.h"
 #include "graphics.h"
 #include "cache.h"
 #include "background.h"
 #include "bitmap.h"
 
 Background::Background(const std::string& name) :
-	visible(true),
+	Drawable(TypeBackground, -1000),
 	bg_hscroll(0), bg_vscroll(0), bg_x(0), bg_y(0),
 	fg_hscroll(0), fg_vscroll(0), fg_x(0), fg_y(0) {
 
-	Graphics::RegisterDrawable(this);
-
 	FileRequestAsync* request = AsyncHandler::RequestFile("Backdrop", name);
-	request->Bind(&Background::OnBackgroundGraphicReady, this);
+	request->Bind(boost::bind(&Background::OnBackgroundGraphicReady, this, _1));
 	request->Start();
 }
 
 Background::Background(int terrain_id) :
-	visible(true),
+	Drawable(TypeBackground, -1000),
 	bg_hscroll(0), bg_vscroll(0), bg_x(0), bg_y(0),
 	fg_hscroll(0), fg_vscroll(0), fg_x(0), fg_y(0) {
-
-	Graphics::RegisterDrawable(this);
 
 	const RPG::Terrain& terrain = Data::terrains[terrain_id - 1];
 
 	if (terrain.background_type == 0) {
 		FileRequestAsync* request = AsyncHandler::RequestFile("Backdrop", terrain.background_name);
-		request->Bind(&Background::OnBackgroundGraphicReady, this);
+		request->Bind(boost::bind(&Background::OnBackgroundGraphicReady, this, _1));
 		request->Start();
 		return;
 	}
 
 	FileRequestAsync* request = AsyncHandler::RequestFile("Frame", terrain.background_a_name);
-	request->Bind(&Background::OnBackgroundGraphicReady, this);
+	request->Bind(boost::bind(&Background::OnBackgroundGraphicReady, this, _1));
 	request->Start();
 
 	bg_hscroll = terrain.background_a_scrollh ? terrain.background_a_scrollh_speed : 0;
@@ -64,7 +59,7 @@ Background::Background(int terrain_id) :
 
 	if (terrain.background_b) {
 		FileRequestAsync* request = AsyncHandler::RequestFile("Frame", terrain.background_b_name);
-		request->Bind(&Background::OnForegroundFrameGraphicReady, this);
+		request->Bind(boost::bind(&Background::OnForegroundFrameGraphicReady, this, _1));
 		request->Start();
 
 		fg_hscroll = terrain.background_b_scrollh ? terrain.background_b_scrollh_speed : 0;
@@ -85,18 +80,6 @@ void Background::OnForegroundFrameGraphicReady(FileRequestResult* result) {
 	fg_bitmap = Cache::Frame(result->file);
 }
 
-Background::~Background() {
-	Graphics::RemoveDrawable(this);
-}
-
-int Background::GetZ() const {
-	return z;
-}
-
-DrawableType Background::GetType() const {
-	return type;
-}
-
 void Background::Update(int& rate, int& value) {
 	int step =
 		(rate > 0) ? 1 << rate :
@@ -114,17 +97,4 @@ void Background::Update() {
 
 int Background::Scale(int x) {
 	return x > 0 ? x / 64 : -(-x / 64);
-}
-
-void Background::Draw() {
-	if (!visible)
-		return;
-
-	BitmapRef dst = DisplayUi->GetDisplaySurface();
-
-	if (bg_bitmap)
-		dst->TiledBlit(-Scale(bg_x), -Scale(bg_y), bg_bitmap->GetRect(), *bg_bitmap, dst->GetRect(), 255);
-
-	if (fg_bitmap)
-		dst->TiledBlit(-Scale(fg_x), -Scale(fg_y), fg_bitmap->GetRect(), *fg_bitmap, dst->GetRect(), 255);
 }

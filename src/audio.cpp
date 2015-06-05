@@ -32,3 +32,11 @@ AudioInterface& Audio() {
 	return default_;
 #endif
 }
+
+#ifdef HAVE_OPENAL
+#  include "platform/al_audio.cpp"
+#endif
+
+#ifdef HAVE_SDL_MIXER
+#  include "platform/sdl_audio.cpp"
+#endif

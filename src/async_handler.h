@@ -126,16 +126,6 @@ public:
 	const std::string& GetPath() const;
 
 	/**
-	 * Binds a member function as request-finished event handler.
-	 * The event handler is only invoked once (one-shot).
-	 *
-	 * @param func member function.
-	 * @param that instance of object.
-	 * @return Event ID. 
-	 */
-	template<typename T> int Bind(void (T::*func)(FileRequestResult*), T* that);
-
-	/**
 	 * Binds a function as request-finished event handler.
 	 * The event handler is only invoked once (one-shot).
 	 *
@@ -143,15 +133,6 @@ public:
 	 * @return Event ID.
 	 */
 	int Bind(boost::function<void(FileRequestResult*)> func);
-
-	/**
-	 * Binds a function as request-finished event handler.
-	 * The event handler is only invoked once (one-shot).
-	 *
-	 * @param func function.
-	 * @return Event ID.
-	 */
-	int Bind(void(*func)(FileRequestResult*));
 
 	/**
 	 * Unbinds a previously binded event handler.
@@ -188,10 +169,4 @@ struct FileRequestResult {
 	bool success;
 };
 
-template<typename T>
-int FileRequestAsync::Bind(void (T::*func)(FileRequestResult*), T* that) {
-	boost::function1<void, FileRequestResult*> f;
-	f = std::bind1st(std::mem_fun(func), that);
-	return Bind(f);
-}
 #endif

@@ -101,7 +101,7 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 list(APPEND EASYRPG_PLAYER_LIBRARIES ${Boost_LIBRARIES})
 
-foreach(i Expat Freetype Pixman ZLIB PNG SDL2 Iconv)
+foreach(i Expat Freetype Pixman ZLIB PNG SDL2 Iconv OpenGL)
   find_package(${i} REQUIRED)
 
   string(TOUPPER ${i} i)
@@ -126,9 +126,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 endif()
 add_library(${PROJECT_NAME}_Static STATIC ${SRCS})
 
-# RTP Table
 find_package(Ruby)
 if(RUBY_FOUND)
+  # RTP Table
   add_custom_command(
     OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/rtp_table_bom.h"
     COMMAND "${RUBY_EXECUTABLE}"
@@ -139,11 +139,25 @@ if(RUBY_FOUND)
     DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rtp_table.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/add_bom.rb")
-  execute_process(
-    COMMAND "${RUBY_EXECUTABLE}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/add_bom.rb"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtp_table.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/rtp_table_bom.h")
+  set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/filefinder.cpp"
+    APPEND PROPERTY OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/rtp_table_bom.h")
+
+  # Shader check and convert
+  set(script "${CMAKE_CURRENT_SOURCE_DIR}/resources/shader_tool.rb")
+  foreach(i default tiled screen fill_effect)
+    set(vert "${CMAKE_CURRENT_SOURCE_DIR}/src/shader/${i}.vert")
+    set(frag "${CMAKE_CURRENT_SOURCE_DIR}/src/shader/${i}.frag")
+    add_custom_command(
+      OUTPUT "${vert}.inc"
+      COMMAND "${RUBY_EXECUTABLE}" ARGS "${script}" "${vert}" "${vert}.inc" "${frag}"
+      DEPENDS "${vert}" "${frag}" "${script}")
+    add_custom_command(
+      OUTPUT "${frag}.inc"
+      COMMAND "${RUBY_EXECUTABLE}" ARGS "${script}" "${frag}" "${frag}.inc" "${vert}"
+      DEPENDS "${vert}" "${frag}" "${script}")
+    set_property(SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics.cpp"
+      APPEND PROPERTY OBJECT_DEPENDS "${vert}.inc" "${frag}.inc")
+  endforeach()
 endif()
 
 # executable

@@ -28,11 +28,8 @@ struct FileRequestResult;
 class BattleAnimation : public Drawable {
 public:
 	BattleAnimation(int x, int y, const RPG::Animation* animation);
-	~BattleAnimation();
 
 	void Draw();
-	int GetZ() const;
-	DrawableType GetType() const;
 
 	void Update();
 	int GetFrame() const;

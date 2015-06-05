@@ -18,7 +18,6 @@
 // Headers
 #include <boost/bind.hpp>
 #include <cstdlib>
-#include <iostream>
 #include <sstream>
 #include "async_handler.h"
 #include "audio.h"
@@ -902,7 +901,7 @@ void Game_Interpreter_Map::OnChangeSystemGraphicReady(FileRequestResult* result)
 
 bool Game_Interpreter_Map::CommandChangeSystemGraphics(RPG::EventCommand const& com) { // code 10680
 	FileRequestAsync* request = AsyncHandler::RequestFile("System", com.string);
-	request->Bind(&Game_Interpreter_Map::OnChangeSystemGraphicReady, this);
+	request->Bind(boost::bind(&Game_Interpreter_Map::OnChangeSystemGraphicReady, this, _1));
 	request->SetImportantFile(true);
 	request->Start();
 

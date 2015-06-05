@@ -17,7 +17,6 @@
 
 // Headers
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -48,6 +47,7 @@
 #include "scene_map.h"
 #include "util_macro.h"
 #include "window_command.h"
+#include <boost/bind.hpp>
 
 Scene_Title::Scene_Title() {
 	type = Scene::Title;
@@ -145,7 +145,7 @@ void Scene_Title::CreateTitleGraphic() {
 	{
 		title.reset(new Sprite());
 		FileRequestAsync* request = AsyncHandler::RequestFile("Title", Data::system.title_name);
-		request->Bind(&Scene_Title::OnTitleSpriteReady, this);
+		request->Bind(boost::bind(&Scene_Title::OnTitleSpriteReady, this, _1));
 		request->Start();
 	}
 }

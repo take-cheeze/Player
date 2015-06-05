@@ -49,6 +49,9 @@
 #include "bitmap.h"
 #include "main_data.h"
 #include "message_overlay.h"
+#include "text.h"
+#include "image_png.h"
+#include "baseui.h"
 
 #include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
@@ -126,6 +129,7 @@ static void HandleErrorOutput(const std::string& err) {
 	emscripten_cancel_main_loop();
 #endif
 
+	/* TODO
 	// Drawing directly on the screen because message_overlay is not visible
 	// when faded out
 	BitmapRef surface = DisplayUi->GetDisplaySurface();
@@ -138,6 +142,7 @@ static void HandleErrorOutput(const std::string& err) {
 	Text::Draw(*surface, 11, 11, Color(0, 0, 0, 255), error);
 	Text::Draw(*surface, 10, 10, Color(255, 255, 255, 255), error);
 	DisplayUi->UpdateDisplay();
+	*/
 
 	if (ignore_pause) { return; }
 
@@ -161,6 +166,7 @@ bool Output::TakeScreenshot() {
 								 + boost::lexical_cast<std::string>(index++)
 								 + ".png");
 	} while(FileFinder::Exists(p));
+	Output::Debug("Screenshot taken to: %s", p.c_str());
 	return TakeScreenshot(p);
 }
 
@@ -171,7 +177,7 @@ bool Output::TakeScreenshot(std::string const& file) {
 }
 
 bool Output::TakeScreenshot(std::ostream& os) {
-	return DisplayUi->GetDisplaySurface()->WritePNG(os);
+	return ImagePNG::WritePNG(os, *Graphics::SnapToBitmap());
 }
 
 void Output::ToggleLog() {

@@ -19,7 +19,6 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include "baseui.h"
 #include "cache.h"
 #include "input.h"
 #include "game_variables.h"

@@ -40,27 +40,17 @@ public:
 class MessageOverlay : public Drawable {
 public:
 	MessageOverlay();
-	virtual ~MessageOverlay();
 
 	void Draw();
-
-	int GetZ() const;
-
-	DrawableType GetType() const;
-
-	bool IsGlobal() const;
 
 	void AddMessage(const std::string& message, Color color);
 
 	void SetShowAll(bool show_all);
 
 private:
-	DrawableType type;
-
 	BitmapRef bitmap;
 	BitmapRef black;
 
-	int z;
 	int ox;
 	int oy;
 

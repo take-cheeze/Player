@@ -15,8 +15,34 @@
  * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Headers
 #include "system.h"
+#include <string>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
-#ifdef HAVE_SDL_MIXER
-#  include "platform/sdl_audio.h"
+#ifdef USE_SDL
+#  include "SDL_syswm.h"
 #endif
+
+/**
+ * Windows Utils namespace
+ */
+namespace WindowsUtils {
+	/**
+	 * Detects the Windows version during runtime.
+	 * Vista (and later) have version 6 and higher.
+	 */
+	int GetWindowsVersion() {
+		static DWORD major_version = 0;
+		if (major_version != 0) {
+			return major_version;
+		}
+
+		OSVERSIONINFO osvi;
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx(&osvi);
+
+		return osvi.dwMajorVersion;
+	}
+}

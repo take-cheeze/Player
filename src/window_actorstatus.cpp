@@ -22,14 +22,13 @@
 #include "game_actors.h"
 #include "game_party.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 
 Window_ActorStatus::Window_ActorStatus(int ix, int iy, int iwidth, int iheight, int actor_id) :
 	Window_Base(ix, iy, iwidth, iheight),
 	actor_id(actor_id) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	Refresh();
 }
@@ -45,15 +44,15 @@ void Window_ActorStatus::DrawStatus(){
 	Game_Actor* actor = Game_Actors::GetActor(actor_id);
 
 	// Draw Hp
-	contents->TextDraw(1, 3, 1, Data::terms.hp_short);
+	Text::Draw(*contents, 1, 3, 1, Data::terms.hp_short);
 	DrawMinMax(100,3,actor->GetHp(), actor->GetMaxHp());
 
 	// Draw Sp
-	contents->TextDraw(1, 18, 1, Data::terms.sp_short);
+	Text::Draw(*contents, 1, 18, 1, Data::terms.sp_short);
 	DrawMinMax(100,18,actor->GetSp(), actor->GetMaxSp());
 
 	// Draw Exp
-	contents->TextDraw(1, 33, 1, Data::terms.exp_short);
+	Text::Draw(*contents, 1, 33, 1, Data::terms.exp_short);
 	DrawMinMax(100,33, -1, -1);
 }
 
@@ -63,12 +62,12 @@ void Window_ActorStatus::DrawMinMax(int cx, int cy, int min, int max){
 		ss << min;
 	else
 		ss << Game_Actors::GetActor(actor_id)->GetExpString();
-	contents->TextDraw(cx, cy, Font::ColorDefault, ss.str(), Text::AlignRight);
-	contents->TextDraw(cx, cy, Font::ColorDefault, "/");
+	Text::Draw(*contents, cx, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, cx, cy, Text::ColorDefault, "/");
 	ss.str("");
 	if (max >= 0)
 		ss << max;
 	else
 		ss << Game_Actors::GetActor(actor_id)->GetNextExpString();
-	contents->TextDraw(cx+48, cy, Font::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, cx+48, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
 }

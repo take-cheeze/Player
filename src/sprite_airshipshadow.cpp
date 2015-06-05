@@ -47,7 +47,7 @@ void Sprite_AirshipShadow::RecreateShadow() {
 	// Offset of the shadow in the System graphic as per
 	// https://easy-rpg.org/wiki/development/technical-details/system-graphics
 	// TODO 26% opacity looks okay, but isn't accurate to RPG_RT
-	Opacity opacity = Opacity(0.26 * 255);
+	uint8_t opacity = 0.26 * 255;
 	GetBitmap()->Blit(0, 0, *system, Rect(128,32,16,16), opacity);
 	GetBitmap()->Blit(0, 0, *system, Rect(128+16,32,16,16), opacity);
 }

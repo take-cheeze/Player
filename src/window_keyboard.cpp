@@ -24,6 +24,7 @@
 #include "game_system.h"
 #include "input.h"
 #include "bitmap.h"
+#include "text.h"
 #include "font.h"
 
 #include <boost/regex/pending/unicode_iterator.hpp>
@@ -135,7 +136,6 @@ Window_Keyboard::Window_Keyboard(int ix, int iy, int iwidth, int iheight)
 	col = 0;
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 	SetZ(9999);
 
 	row_spacing = 16;
@@ -193,7 +193,7 @@ void Window_Keyboard::Refresh() {
 	for (int j = 0; j < row_max; j++) {
 		for (int i = 0; i < col_max; i++) {
 			Rect r = GetItemRect(j, i);
-			contents->TextDraw(r.x + 4, r.y, Font::ColorDefault, items[mode][j][i]);
+			Text::Draw(*contents, r.x + 4, r.y, Text::ColorDefault, items[mode][j][i]);
 		}
 	}
 }

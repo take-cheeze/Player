@@ -38,8 +38,6 @@ public:
 
 	int GetLineCount();
 
-	void Refresh();
-
 	void Update();
 
 private:

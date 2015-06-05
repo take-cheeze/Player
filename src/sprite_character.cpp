@@ -21,6 +21,7 @@
 #include "cache.h"
 #include "game_map.h"
 #include "bitmap.h"
+#include <boost/bind.hpp>
 
 Sprite_Character::Sprite_Character(Game_Character* character) :
 	character(character),
@@ -47,7 +48,7 @@ void Sprite_Character::Update() {
 				tile_request->Unbind(tile_request_id);
 			}
 			tile_request = AsyncHandler::RequestFile("ChipSet", Game_Map::GetChipsetName());
-			tile_request_id = tile_request->Bind(&Sprite_Character::OnTileSpriteReady, this);
+			tile_request_id = tile_request->Bind(boost::bind(&Sprite_Character::OnTileSpriteReady, this, _1));
 			tile_request->Start();
 		} else {
 			if (character_name.empty()) {
@@ -57,7 +58,7 @@ void Sprite_Character::Update() {
 					char_request->Unbind(char_request_id);
 				}
 				char_request = AsyncHandler::RequestFile("CharSet", character_name);
-				char_request_id = char_request->Bind(&Sprite_Character::OnCharSpriteReady, this);
+				char_request_id = char_request->Bind(boost::bind(&Sprite_Character::OnCharSpriteReady, this, _1));
 				char_request->Start();
 			}
 		}
@@ -120,7 +121,7 @@ void Sprite_Character::OnCharSpriteReady(FileRequestResult*) {
 	int sy = (character_index / 4) * chara_height * 4;
 	Rect r;
 	r.Set(sx, sy, chara_width * 3, chara_height * 4);
-	SetSpriteRect(r);
+	SetSrcRect(r);
 
 	Update();
 }

@@ -22,8 +22,7 @@
 #include "game_switches.h"
 #include "game_variables.h"
 #include "bitmap.h"
-
-
+#include "text.h"
 
 Window_VarList::Window_VarList(std::vector<std::string> commands) :
 Window_Command(commands, 224, 10), show_switch(true), first_var(0) {
@@ -43,7 +42,7 @@ void Window_VarList::Refresh() {
 	contents->Clear();
 	for (int i = 0; i < 10; i++) {
 		if (!show_switch && Game_Variables.isValidVar(first_var+i)) {
-			DrawItem(i, Font::ColorDefault);
+			DrawItem(i, Text::ColorDefault);
 		}
 		DrawItemValue(i);
 	}
@@ -53,16 +52,16 @@ void Window_VarList::DrawItemValue(int index){
 	if (show_switch){
 		if (!Game_Switches.isValidSwitch(first_var+index))
 			return;
-		DrawItem(index, Font::ColorDefault);
-		contents->TextDraw(GetWidth() - 16, 16 * index + 2, (!Game_Switches[first_var+index]) ? Font::ColorCritical : Font::ColorDefault, Game_Switches[first_var+index] ? "[ON]" : "[OFF]", Text::AlignRight);
+		DrawItem(index, Text::ColorDefault);
+		Text::Draw(*contents, GetWidth() - 16, 16 * index + 2, (!Game_Switches[first_var+index]) ? Text::ColorCritical : Text::ColorDefault, Game_Switches[first_var+index] ? "[ON]" : "[OFF]", Text::AlignRight);
 	}
 	else {
 		if (!Game_Variables.isValidVar(first_var+index))
 			return;
-		DrawItem(index, Font::ColorDefault);
+		DrawItem(index, Text::ColorDefault);
 		std::stringstream ss;
 		ss  << Game_Variables[first_var+index];
-		contents->TextDraw(GetWidth() - 16, 16 * index + 2, (Game_Variables[first_var+index] < 0) ? Font::ColorCritical : Font::ColorDefault, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, GetWidth() - 16, 16 * index + 2, (Game_Variables[first_var+index] < 0) ? Text::ColorCritical : Text::ColorDefault, ss.str(), Text::AlignRight);
 	}
 }
 

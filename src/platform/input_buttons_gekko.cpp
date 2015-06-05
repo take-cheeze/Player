@@ -15,8 +15,6 @@
  * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if defined(GEKKO)
-
 // Headers
 #include "input_buttons.h"
 #include "keys.h"
@@ -58,7 +56,7 @@ void Input::InitButtons() {
 
 	buttons[LEFT].push_back(Keys::JOY_AXIS_X_LEFT);
 	buttons[RIGHT].push_back(Keys::JOY_AXIS_X_RIGHT);
-	buttons[DOWN].push_back(Keys::JOY_AXIS_Y_DOWN);	
+	buttons[DOWN].push_back(Keys::JOY_AXIS_Y_DOWN);
 	buttons[UP].push_back(Keys::JOY_AXIS_Y_UP);
 
 	dir_buttons.resize(10);
@@ -67,5 +65,3 @@ void Input::InitButtons() {
 	dir_buttons[6].push_back(RIGHT);
 	dir_buttons[8].push_back(UP);
 }
-
-#endif

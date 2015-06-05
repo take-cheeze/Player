@@ -23,6 +23,7 @@
 #include "bitmap.h"
 #include "drawable.h"
 #include "system.h"
+#include "tone.h"
 
 namespace RPG {
 	class SaveScreen;
@@ -39,18 +40,11 @@ namespace RPG {
 class Screen : public Drawable {
 public:
 	Screen();
-	~Screen();
 
 	void Draw();
 	void Update();
 
-	int GetZ() const;
-	DrawableType GetType() const;
-
 private:
-	static const int z = 1050;
-	static const DrawableType type = TypeScreen;
-
 	Tone default_tone;
 	BitmapRef flash;
 };

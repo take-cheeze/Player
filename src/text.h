@@ -21,6 +21,9 @@
 #include "system.h"
 #include <string>
 
+class Color;
+class Rect;
+
 namespace Text {
 	/** TextDraw alignment options. */
 	enum Alignment {
@@ -29,11 +32,20 @@ namespace Text {
 		AlignRight
 	};
 
+	enum SystemColor {
+		ColorShadow = -1,
+		ColorDefault = 0,
+		ColorDisabled = 3,
+		ColorCritical = 4,
+		ColorKnockout = 5
+	};
+
 	void Draw(Bitmap& dest, int x, int y, int color, std::string const& text, Text::Alignment align = Text::AlignLeft);
+	void Draw(Bitmap& dest, Rect const& dst_rect, int color, std::string const& text, Text::Alignment align = Text::AlignLeft);
 
 	/**
 	 * Draws text using the specified color on dest
 	 */
-	void Draw(Bitmap& dest, int x, int y, Color color, std::string const& text);
+	void Draw(Bitmap& dest, int x, int y, Color const& color, std::string const& text);
 }
 #endif

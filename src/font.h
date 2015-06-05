@@ -21,6 +21,7 @@
 // Headers
 #include "system.h"
 #include <string>
+#include <boost/function.hpp>
 
 class Color;
 class Rect;
@@ -34,28 +35,25 @@ class Font {
 
 	virtual Rect GetSize(std::string const& txt) const = 0;
 
-	virtual BitmapRef Glyph(unsigned code) = 0;
-
 	void Render(Bitmap& bmp, int x, int y, Bitmap const& sys, int color, unsigned glyph);
 	void Render(Bitmap& bmp, int x, int y, Color const& color, unsigned glyph);
 
+	typedef boost::function<Color(int x, int y)> pixel_getter;
+	typedef boost::function<void(int x, int y, Color const&)> pixel_setter;
+	virtual void RenderGlyph(unsigned code, pixel_getter const& g, pixel_setter const& s) = 0;
+
 	static FontRef Create(const std::string& name, int size, bool bold, bool italic);
-	static FontRef Default(bool mincho = false);
+	static FontRef Mincho();
+	static FontRef Gothic();
+	static FontRef Default();
+	static void SetDefault(FontRef const& r);
 	static void Dispose();
 
-	static FontRef exfont;
+	static FontRef const exfont;
 
 	static const int default_size = 9;
 	static const bool default_bold = false;
 	static const bool default_italic = false;
-
-	enum SystemColor {
-		ColorShadow = -1,
-		ColorDefault = 0,
-		ColorDisabled = 3,
-		ColorCritical = 4,
-		ColorKnockout = 5
-	};
 
 	std::string name;
 	unsigned size;
@@ -65,6 +63,8 @@ class Font {
 	size_t pixel_size() const { return size * 96 / 72; }
  protected:
 	Font(const std::string& name, int size, bool bold, bool italic);
+    private:
+	static FontRef default_font_;
 };
 
 #endif

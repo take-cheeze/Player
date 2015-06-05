@@ -24,7 +24,7 @@
 #include "game_temp.h"
 #include "game_party.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 
 Window_ShopBuy::Window_ShopBuy(int ix, int iy, int iwidth, int iheight) :
 	Window_Selectable(ix, iy, iwidth, iheight) {
@@ -47,7 +47,6 @@ void Window_ShopBuy::Refresh() {
 
 	contents->Clear();
 	Rect rect(0, 0, contents->GetWidth(), contents->GetHeight());
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 	contents->Clear();
 
 	for (size_t i = 0; i < data.size(); ++i) {
@@ -59,13 +58,12 @@ void Window_ShopBuy::DrawItem(int index) {
 	int item_id = data[index];
 	bool enabled = Data::items[item_id - 1].price <= Main_Data::game_party->GetGold();
 	Rect rect = GetItemRect(index);
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 	contents->ClearRect(rect);
 	DrawItemName(&Data::items[item_id - 1], rect.x, rect.y, enabled);
 
 	std::stringstream ss;
 	ss << Data::items[item_id - 1].price;
-	contents->TextDraw(rect.width + 4, rect.y, enabled ? Font::ColorDefault : Font::ColorDisabled, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, rect.width + 4, rect.y, enabled ? Text::ColorDefault : Text::ColorDisabled, ss.str(), Text::AlignRight);
 }
 
 void Window_ShopBuy::UpdateHelp() {

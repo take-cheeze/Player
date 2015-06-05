@@ -21,12 +21,12 @@
 #include "game_party.h"
 #include "bitmap.h"
 #include "font.h"
+#include "text.h"
 
 Window_TargetStatus::Window_TargetStatus(int ix, int iy, int iwidth, int iheight) :
 	Window_Base(ix, iy, iwidth, iheight), id(-1), use_item(false) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 }
 
 void Window_TargetStatus::Refresh() {
@@ -37,9 +37,9 @@ void Window_TargetStatus::Refresh() {
 	}
 
 	if (use_item) {
-		contents->TextDraw(0, 0, 1, Data::terms.possessed_items);
+		Text::Draw(*contents, 0, 0, 1, Data::terms.possessed_items);
 	} else {
-		contents->TextDraw(0, 0, 1, Data::terms.sp_cost);
+		Text::Draw(*contents, 0, 0, 1, Data::terms.sp_cost);
 	}
 
 	std::stringstream ss;
@@ -49,7 +49,7 @@ void Window_TargetStatus::Refresh() {
 		ss << Data::skills[id - 1].sp_cost;
 	}
 
-	contents->TextDraw(contents->GetWidth() - contents->GetFont()->GetSize(ss.str()).width, 0, Font::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, contents->GetWidth() - contents->GetFont()->GetSize(ss.str()).width, 0, Text::ColorDefault, ss.str(), Text::AlignRight);
 }
 
 void Window_TargetStatus::SetData(int id, bool is_item) {

@@ -24,6 +24,8 @@
 #include "game_actor.h"
 #include "main_data.h"
 
+class Sprite;
+
 /**
  * Window Base class.
  */

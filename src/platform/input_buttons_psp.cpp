@@ -15,34 +15,32 @@
  * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if defined(OPENDINGUX)
-
 // Headers
 #include "input_buttons.h"
 #include "keys.h"
 
 void Input::InitButtons() {
 	buttons.resize(BUTTON_COUNT);
-	
-	buttons[UP].push_back(Keys::UP);
-	buttons[DOWN].push_back(Keys::DOWN);
-	buttons[LEFT].push_back(Keys::LEFT);
-	buttons[RIGHT].push_back(Keys::RIGHT);
-	buttons[DECISION].push_back(Keys::RETURN); //START
-	buttons[DECISION].push_back(Keys::LCTRL); //A
-	buttons[CANCEL].push_back(Keys::ESCAPE); //SELECT
-	buttons[CANCEL].push_back(Keys::LALT); //B
-	buttons[N1].push_back(Keys::LSHIFT);//Y
-	buttons[N2].push_back(Keys::SPACE);//X
 
-	buttons[DEBUG_MENU].push_back(Keys::TAB);//L
-	buttons[DEBUG_THROUGH].push_back(Keys::BACKSPACE);//R
+	buttons[DECISION].push_back(Keys::JOY_1); // Circle
+	buttons[DECISION].push_back(Keys::JOY_2); // Cross
+	buttons[CANCEL].push_back(Keys::JOY_3); // Square
+
+	buttons[TOGGLE_FPS].push_back(Keys::JOY_0); // Triangle
+
+	buttons[N1].push_back(Keys::JOY_4); // Left trigger
+	buttons[N2].push_back(Keys::JOY_5); // Right trigger
+
+	buttons[DOWN].push_back(Keys::JOY_6); // Down
+	buttons[LEFT].push_back(Keys::JOY_7); // Left
+	buttons[UP].push_back(Keys::JOY_8); // Up
+	buttons[RIGHT].push_back(Keys::JOY_9); // Right
 
 	dir_buttons.resize(10);
 	dir_buttons[2].push_back(DOWN);
 	dir_buttons[4].push_back(LEFT);
 	dir_buttons[6].push_back(RIGHT);
 	dir_buttons[8].push_back(UP);
+
 }
 
-#endif

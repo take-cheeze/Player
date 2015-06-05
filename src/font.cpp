@@ -38,6 +38,7 @@
 #include "bitmap.h"
 #include "utils.h"
 #include "cache.h"
+#include "rect.h"
 
 bool operator<(ShinonomeGlyph const& lhs, uint32_t const code) {
 	return lhs.code < code;
@@ -79,7 +80,7 @@ namespace {
 
 		Rect GetSize(std::string const& txt) const;
 
-		BitmapRef Glyph(unsigned code);
+		void RenderGlyph(unsigned code, pixel_getter const&, pixel_setter const&);
 
 	private:
 		function_type const func_;
@@ -103,7 +104,7 @@ namespace {
 
 		Rect GetSize(std::string const& txt) const;
 
-		BitmapRef Glyph(unsigned code);
+		void RenderGlyph(unsigned code, pixel_getter const&, pixel_setter const&);
 
 	private:
 		static EASYRPG_WEAK_PTR<boost::remove_pointer<FT_Library>::type> library_checker_;
@@ -115,13 +116,34 @@ namespace {
 		bool check_face();
 	}; // class FTFont
 
-	FontRef const gothic = EASYRPG_MAKE_SHARED<ShinonomeFont>(&find_gothic_glyph);
-	FontRef const mincho = EASYRPG_MAKE_SHARED<ShinonomeFont>(&find_mincho_glyph);
-
 	struct ExFont : public Font {
 		ExFont();
 		Rect GetSize(std::string const& txt) const;
-		BitmapRef Glyph(unsigned code);
+		void RenderGlyph(unsigned code, pixel_getter const&, pixel_setter const&);
+	};
+
+	struct GameSystemPixelAccessor {
+		Bitmap const& src_bmp;
+		Bitmap& dst_bmp;
+		int src_x, src_y, dst_x, dst_y;
+		Color operator()(int x, int y) const {
+			return src_bmp.GetPixel(src_x + x, src_y + y);
+		}
+		void operator()(int x, int y, Color const& c) const {
+			dst_bmp.SetPixel(dst_x + x, dst_y + y, c);
+		}
+	};
+
+	struct FixedColorGetterPixelAccessor {
+		Bitmap& bmp;
+		Color color;
+		int base_x, base_y;
+		Color operator()(int, int) const {
+			return color;
+		}
+		void operator()(int x, int y, Color const& c) const {
+			bmp.SetPixel(base_x + x, base_y + y, c);
+		}
 	};
 } // anonymous namespace
 
@@ -141,19 +163,14 @@ Rect ShinonomeFont::GetSize(std::string const& txt) const {
 	return Rect(0, 0, units * HALF_WIDTH, HEIGHT);
 }
 
-BitmapRef ShinonomeFont::Glyph(unsigned code) {
+void ShinonomeFont::RenderGlyph(unsigned code, pixel_getter const& g, pixel_setter const& s) {
 	ShinonomeGlyph const* const glyph = func_(code);
 	assert(glyph);
 	size_t const width = glyph->is_full? FULL_WIDTH : HALF_WIDTH;
 
-	BitmapRef bm = Bitmap::Create(reinterpret_cast<void*>(NULL), width, HEIGHT, 0, DynamicFormat(8,8,0,8,0,8,0,8,0,PF::Alpha));
-	uint8_t* data = reinterpret_cast<uint8_t*>(bm->pixels());
-	int pitch = bm->pitch();
-	for(size_t y_ = 0; y_ < HEIGHT; ++y_)
-		for(size_t x_ = 0; x_ < width; ++x_)
-			data[y_*pitch+x_] = (glyph->data[y_] & (0x1 << x_)) ? 255 : 0;
-
-	return bm;
+	for (size_t y = 0; y < HEIGHT; ++y)
+		for(size_t x = 0; x < width; ++x)
+			if (glyph->data[y] & (0x1 << x)) s(x, y, g(x, y));
 }
 
 EASYRPG_WEAK_PTR<boost::remove_pointer<FT_Library>::type> FTFont::library_checker_;
@@ -175,44 +192,43 @@ Rect FTFont::GetSize(std::string const& txt) const {
 	}
 }
 
-BitmapRef FTFont::Glyph(unsigned glyph) {
+void FTFont::RenderGlyph(unsigned glyph, pixel_getter const& g, pixel_setter const& s) {
 	if(!check_face()) {
-		return Font::Default()->Glyph(glyph);
+		return Font::Default()->RenderGlyph(glyph, g, s);
 	}
 
 	if (FT_Load_Char(face_.get(), glyph, FT_LOAD_NO_BITMAP) != FT_Err_Ok) {
 		Output::Error("Couldn't load FreeType character %d", glyph);
 	}
 
-    if (FT_Render_Glyph(face_->glyph, FT_RENDER_MODE_MONO) != FT_Err_Ok) {
+	if (FT_Render_Glyph(face_->glyph, FT_RENDER_MODE_MONO) != FT_Err_Ok) {
 		Output::Error("Couldn't render FreeType character %d", glyph);
 	}
 
 	FT_Bitmap const& ft_bitmap = face_->glyph->bitmap;
 	assert(face_->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_MONO);
 
-	size_t const pitch = std::abs(ft_bitmap.pitch);
-	int const width = ft_bitmap.width;
-	int const height = ft_bitmap.rows;
-
-	BitmapRef bm = Bitmap::Create(reinterpret_cast<void*>(NULL), width, height, 0, DynamicFormat(8,8,0,8,0,8,0,8,0,PF::Alpha));
-	uint8_t* data = reinterpret_cast<uint8_t*>(bm->pixels());
-	int dst_pitch = bm->pitch();
-
-	for(int row = 0; row < height; ++row) {
-		for(int col = 0; col < width; ++col) {
-			unsigned c = ft_bitmap.buffer[pitch * row + (col/8)];
-			unsigned bit = 7 - (col%8);
-			data[row * dst_pitch + col] = (c & (0x01 << bit)) ? 255 : 0;
+	for(size_t y = 0; y < ft_bitmap.rows; ++y) {
+		for(size_t x = 0; x < ft_bitmap.width; ++x) {
+			unsigned c = ft_bitmap.buffer[std::abs(ft_bitmap.pitch) * y + (x/8)];
+			unsigned bit = 7 - (x%8);
+			if (c & (0x01 << bit)) s(x, y, g(x, y));
 		}
 	}
-
-	return bm;
 }
 
-FontRef Font::Default(bool const m) {
-	return m? mincho : gothic;
+FontRef Font::default_font_ = Font::Gothic();
+
+FontRef Font::Mincho() {
+	return EASYRPG_MAKE_SHARED<ShinonomeFont>(&find_mincho_glyph);
 }
+
+FontRef Font::Gothic() {
+	return EASYRPG_MAKE_SHARED<ShinonomeFont>(&find_gothic_glyph);
+}
+
+FontRef Font::Default() { return default_font_; }
+void Font::SetDefault(FontRef const& r) { default_font_ = r; }
 
 FontRef Font::Create(const std::string& name, int size, bool bold, bool italic) {
 	return EASYRPG_MAKE_SHARED<FTFont>(name, size, bold, italic);
@@ -301,38 +317,34 @@ bool FTFont::check_face() {
 }
 
 void Font::Render(Bitmap& bmp, int const x, int const y, Bitmap const& sys, int color, unsigned code) {
-	if(color != ColorShadow) {
-		BitmapRef system = Cache::System();
-		Render(bmp, x + 1, y + 1, system->GetShadowColor(), code);
-	}
+	// Shadow first
+	GameSystemPixelAccessor func = { sys, bmp, 16, 32, x + 1, y + 1 };
+	RenderGlyph(code, func, func);
 
-	BitmapRef bm = Glyph(code);
-
-	unsigned const
-		src_x = color == ColorShadow? 16 : color % 10 * 16 + 2,
-		src_y = color == ColorShadow? 32 : color / 10 * 16 + 48 + 16 - bm->height();
-
-	bmp.MaskedBlit(Rect(x, y, bm->width(), bm->height()), *bm, 0, 0, sys, src_x, src_y);
+	func.src_x = color % 10 * 16 + 2;
+	func.src_y = color / 10 * 16 + 48 + 16 - ShinonomeFont::HEIGHT;
+	func.dst_x -= 1; func.dst_y -= 1;
+	RenderGlyph(code, func, func);
 }
 
 void Font::Render(Bitmap& bmp, int x, int y, Color const& color, unsigned code) {
-	BitmapRef bm = Glyph(code);
-
-	bmp.MaskedBlit(Rect(x, y, bm->width(), bm->height()), *bm, 0, 0, color);
+	FixedColorGetterPixelAccessor const func = { bmp, color, x, y };
+	RenderGlyph(code, func, func);
 }
 
 ExFont::ExFont() : Font("exfont", 12, false, false) {
 }
 
-FontRef Font::exfont = EASYRPG_MAKE_SHARED<ExFont>();
+FontRef const Font::exfont = EASYRPG_MAKE_SHARED<ExFont>();
 
-BitmapRef ExFont::Glyph(unsigned code) {
+void ExFont::RenderGlyph(unsigned code, pixel_getter const& g, pixel_setter const& s) {
 	BitmapRef exfont = Cache::Exfont();
-	Rect const rect((code % 13) * 12, (code / 13) * 12, 12, 12);
-	return Bitmap::Create(*exfont, rect, true);
+	int base_x = (code % 13) * 12, base_y = (code / 13) * 12;
+	for (int y = 0; y < 12; ++y)
+		for (int x = 0; x < 12; ++x)
+			if (exfont->GetPixel(base_x + x, base_y + y).alpha != 0) { s(x, y, g(x, y)); }
 }
 
 Rect ExFont::GetSize(std::string const& /* txt */) const {
 	return Rect(0, 0, 12, 12);
 }
-

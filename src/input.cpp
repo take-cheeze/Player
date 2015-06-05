@@ -19,6 +19,7 @@
 #include "input.h"
 #include "player.h"
 #include "system.h"
+#include "baseui.h"
 
 #include <algorithm>
 #include <boost/lambda/lambda.hpp>

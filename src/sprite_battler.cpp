@@ -160,7 +160,7 @@ void Sprite_Battler::CreateSprite() {
 		}
 		else {
 			FileRequestAsync* request = AsyncHandler::RequestFile("Monster", sprite_name);
-			request->Bind(&Sprite_Battler::OnMonsterSpriteReady, this);
+			request->Bind(boost::bind(&Sprite_Battler::OnMonsterSpriteReady, this, _1));
 			request->Start();
 		}
 	}
@@ -183,11 +183,9 @@ void Sprite_Battler::OnMonsterSpriteReady(FileRequestResult* result) {
 	SetOx(graphic->GetWidth() / 2);
 	SetOy(graphic->GetHeight() / 2);
 
-	bool hue_change = hue != 0;
-	if (hue_change) {
-		BitmapRef new_graphic = Bitmap::Create(graphic->GetWidth(), graphic->GetHeight());
-		new_graphic->HueChangeBlit(0, 0, *graphic, graphic->GetRect(), hue);
-		graphic = new_graphic;
+	if (hue != 0) {
+		graphic = Bitmap::Create(*graphic, graphic->GetRect());
+		graphic->HueChange(hue);
 	}
 
 	SetBitmap(graphic);

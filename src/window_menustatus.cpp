@@ -16,7 +16,6 @@
  */
 
 // Headers
-#include "baseui.h"
 #include "window_menustatus.h"
 #include "graphics.h"
 #include "cache.h"
@@ -28,13 +27,11 @@ Window_MenuStatus::Window_MenuStatus(int ix, int iy, int iwidth, int iheight) :
 	Window_Selectable(ix, iy, iwidth, iheight) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	Refresh();
 }
 
 void Window_MenuStatus::Refresh() {
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 	contents->Clear();
 
 	item_max = Main_Data::game_party->GetActors().size();

@@ -29,18 +29,11 @@ class TilemapLayer;
 class TilemapTile : public Drawable {
 public:
 	TilemapTile(TilemapLayer* tilemap, int z);
-	~TilemapTile();
 
 	void Draw();
 
-	int GetZ() const;
-
-	DrawableType GetType() const;
-
 private:
-	DrawableType type;
 	TilemapLayer* tilemap;
-	int z;
 };
 
 /**
@@ -50,7 +43,7 @@ class TilemapLayer {
 public:
 	TilemapLayer(int ilayer);
 
-	void DrawTile(Bitmap& screen, int x, int y, int row, int col, bool autotile);
+	void DrawTile(BitmapRef const& screen, int x, int y, int row, int col, bool autotile);
 	void Draw(int z_order);
 
 	void Update();
@@ -61,8 +54,6 @@ public:
 	void SetMapData(const std::vector<short>& nmap_data);
 	std::vector<unsigned char> GetPassable() const;
 	void SetPassable(const std::vector<unsigned char>& npassable);
-	bool GetVisible() const;
-	void SetVisible(bool nvisible);
 	int GetOx() const;
 	void SetOx(int nox);
 	int GetOy() const;
@@ -75,6 +66,8 @@ public:
 	void SetAnimationSpeed(int speed);
 	int GetAnimationType() const;
 	void SetAnimationType(int type);
+	bool GetVisible() const;
+	void SetVisible(bool v);
 
 	void Substitute(int old_id, int new_id);
 

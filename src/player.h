@@ -19,7 +19,6 @@
 #define _PLAYER_H_
 
 // Headers
-#include "baseui.h"
 #include <vector>
 
 /**

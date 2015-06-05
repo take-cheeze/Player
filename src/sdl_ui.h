@@ -27,16 +27,6 @@
 #include <boost/scoped_ptr.hpp>
 #include <SDL.h>
 
-extern "C" {
-	union SDL_Event;
-	struct SDL_Surface;
-#if SDL_MAJOR_VERSION > 1
-	struct SDL_Texture;
-	struct SDL_Window;
-	struct SDL_Renderer;
-#endif
-}
-
 struct AudioInterface;
 
 /**
@@ -84,10 +74,9 @@ public:
 
 	AudioInterface& GetAudio();
 
-	/** @} */
+	void MakeGLContextCurrent();
 
-	/** Get display surface. */
-	BitmapRef GetDisplaySurface();
+	/** @} */
 
 private:
 	/**
@@ -112,21 +101,8 @@ private:
 	void ProcessJoystickButtonEvent(SDL_Event &evnt);
 	void ProcessJoystickHatEvent(SDL_Event &evnt);
 	void ProcessJoystickAxisEvent(SDL_Event &evnt);
-#if SDL_MAJOR_VERSION>1
-	void ProcessFingerDownEvent(SDL_Event & evnt);
-	void ProcessFingerUpEvent(SDL_Event & evnt);
-	void ProcessFingerEvent(SDL_Event & evnt, bool finger_down);
-#endif
 
 	/** @} */
-
-	/**
-	 * Blits a bitmap scaled x2 to an SDL surface.
-	 *
-	 * @param src source bitmap.
-	 * @param dst destination surface.
-	 */
-	void Blit2X(Bitmap const& src, SDL_Surface* dst);
 
 	/**
 	 * Sets app icon.
@@ -150,13 +126,8 @@ private:
 	bool mode_changing;
 
 	/** Main SDL window. */
-#if SDL_MAJOR_VERSION==1
-	SDL_Surface* sdl_surface;
-#else
-	SDL_Texture* sdl_texture;
 	SDL_Window* sdl_window;
-	SDL_Renderer* sdl_renderer;
-#endif
+	SDL_GLContext sdl_gl_context;
 
 	boost::scoped_ptr<AudioInterface> audio_;
 };

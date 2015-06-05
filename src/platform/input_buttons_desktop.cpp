@@ -15,8 +15,6 @@
  * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if !(defined(OPENDINGUX) || defined(GEKKO))
-
 // Headers
 #include "input_buttons.h"
 #include "keys.h"
@@ -129,4 +127,3 @@ void Input::InitButtons() {
 	dir_buttons[8].push_back(UP);
 }
 
-#endif

@@ -33,6 +33,8 @@
 #include "output.h"
 #include "player.h"
 #include "data.h"
+#include "text.h"
+#include "rect.h"
 
 namespace {
 	typedef std::pair<std::string,std::string> string_pair;
@@ -47,7 +49,7 @@ namespace {
 	static std::string system_name;
 
 	BitmapRef LoadBitmap(std::string const& folder_name, const std::string& filename,
-						 bool transparent, uint32_t const flags) {
+						 bool transparent) {
 		string_pair const key(folder_name, filename);
 
 		cache_type::const_iterator const it = cache.find(key);
@@ -59,7 +61,7 @@ namespace {
 				return BitmapRef();
 			}
 
-			return (cache[key] = Bitmap::Create(path, transparent, flags)).lock();
+			return (cache[key] = Bitmap::Create(path, transparent)).lock();
 		} else { return it->second.lock(); }
 	}
 
@@ -119,7 +121,7 @@ namespace {
 
 		string_pair const key(folder_name, filename);
 
-		BitmapRef bitmap = Bitmap::Create(s.max_width, s.max_height, false);
+		BitmapRef bitmap = Bitmap::Create(s.max_width, s.max_height);
 
 		// ToDo: Maybe use different renderers depending on material
 		// Will look ugly for some image types (especially System)
@@ -133,7 +135,7 @@ namespace {
 		}
 
 		// Draw filename
-		bitmap->TextDraw(4, 4, Color(255, 0, 0, 0), folder_name + "/" + filename);
+		Text::Draw(*bitmap, 4, 4, Color(255, 0, 0, 0), folder_name + "/" + filename);
 
 		return (cache[key] = bitmap).lock();
 	}
@@ -152,10 +154,7 @@ namespace {
 			return BitmapRef();
 		}
 
-		BitmapRef ret = LoadBitmap(s.directory, f, transparent,
-										 T == Material::Chipset? Bitmap::Chipset:
-										 T == Material::System? Bitmap::System:
-										 0);
+		BitmapRef ret = LoadBitmap(s.directory, f, transparent);
 
 		if (!ret) {
 			Output::Warning("Image not found: %s/%s", s.directory, f.c_str());
@@ -264,7 +263,7 @@ BitmapRef Cache::System() {
 			// Load the system file for the shadow and text color
 			return Cache::System(Data::system.system_name);
 		} else {
-			return Bitmap::Create(160, 80, false);
+			return Bitmap::Create(160, 80);
 		}
 	}
 }

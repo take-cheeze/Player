@@ -20,7 +20,6 @@
 #include "game_system.h"
 #include "async_handler.h"
 #include "audio.h"
-#include "baseui.h"
 #include "bitmap.h"
 #include "cache.h"
 #include "graphics.h"
@@ -98,7 +97,9 @@ std::string Game_System::GetSystemName() {
 void Game_System::SetSystemName(std::string const& new_system_name) {
 	data.graphics_name = new_system_name;
 	Cache::SetSystemName(new_system_name);
-	DisplayUi->SetBackcolor(Cache::System()->GetBackgroundColor());
+
+	// TODO: wallpaper setting
+	// Graphics::SetBackcolor(Cache::System()->GetBackgroundColor());
 }
 
 RPG::Music& Game_System::GetSystemBGM(int which) {

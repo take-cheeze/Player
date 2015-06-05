@@ -21,7 +21,7 @@
 #include "game_actors.h"
 #include "window_equipstatus.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 
 Window_EquipStatus::Window_EquipStatus(int ix, int iy, int iwidth, int iheight, int actor_id, bool draw_actorname) :
 	Window_Base(ix, iy, iwidth, iheight),
@@ -31,7 +31,6 @@ Window_EquipStatus::Window_EquipStatus(int ix, int iy, int iwidth, int iheight, 
 	dirty(true) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	Refresh();
 }
@@ -118,13 +117,13 @@ void Window_EquipStatus::DrawParameter(int cx, int cy, int type) {
 	}
 
 	// Draw Term
-	contents->TextDraw(cx, cy, 1, name);
+	Text::Draw(*contents, cx, cy, 1, name);
 
 	// Draw Value
 	cx += 60;
 	std::stringstream ss;
 	ss << value;
-	contents->TextDraw(cx + 18, cy, Font::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, cx + 18, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
 
 	if (draw_params) {
 		// Draw New Value
@@ -132,6 +131,6 @@ void Window_EquipStatus::DrawParameter(int cx, int cy, int type) {
 		ss.str("");
 		ss << new_value;
 		int color = GetNewParameterColor(value, new_value);
-		contents->TextDraw(cx + 18, cy, color, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, cx + 18, cy, color, ss.str(), Text::AlignRight);
 	}
 }

@@ -22,12 +22,22 @@
 #ifdef SUPPORT_PNG
 
 #include <cstdio>
-#include <ostream>
+#include <iosfwd>
 #include "system.h"
+
+class Bitmap;
 
 namespace ImagePNG {
 	void ReadPNG(FILE* stream, const void* buffer, bool transparent, int& width, int& height, void*& pixels);
-	bool WritePNG(std::ostream& os, uint32_t width, uint32_t height, uint32_t* data);
+
+	/**
+	 * Writes PNG converted bitmap to output stream.
+	 *
+	 * @param os output stream that PNG will be output.
+	 * @param bmp source bitmap to write
+	 * @return true if success, otherwise false.
+	 */
+	bool WritePNG(std::ostream& os, Bitmap const& bmp);
 }
 
 #endif // SUPPORT_PNG

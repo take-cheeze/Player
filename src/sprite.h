@@ -30,7 +30,6 @@
 class Sprite : public Drawable {
 public:
 	Sprite();
-	virtual ~Sprite();
 
 	void Draw();
 
@@ -45,15 +44,10 @@ public:
 	void SetBitmap(BitmapRef const& bitmap);
 	Rect const& GetSrcRect() const;
 	void SetSrcRect(Rect const& src_rect);
-	void SetSpriteRect(Rect const& sprite_rect);
-	bool GetVisible() const;
-	void SetVisible(bool visible);
 	int GetX() const;
 	void SetX(int x);
 	int GetY() const;
 	void SetY(int y);
-	int GetZ() const;
-	void SetZ(int z);
 	int GetOx() const;
 	void SetOx(int ox);
 	int GetOy() const;
@@ -83,18 +77,12 @@ public:
 	double GetWaverPhase() const;
 	void SetWaverPhase(double phase);
 
-	DrawableType GetType() const;
-
 private:
-	DrawableType type;
-
 	BitmapRef bitmap;
 
 	Rect src_rect;
-	bool visible;
 	int x;
 	int y;
-	int z;
 	int ox;
 	int oy;
 
@@ -102,10 +90,6 @@ private:
 	int flash_duration;
 	int flash_frame;
 
-	bool needs_refresh;
-	bool bitmap_changed;
-
-	Rect src_rect_effect;
 	int opacity_top_effect;
 	int opacity_bottom_effect;
 	int bush_effect;
@@ -121,22 +105,6 @@ private:
 	double waver_effect_phase;
 	Color flash_effect;
 
-	BitmapRef bitmap_effects;
-
-	Rect bitmap_effects_src_rect;
-	bool bitmap_effects_valid;
-
-	Tone current_tone;
-	Color current_flash;
-	double current_zoom_x;
-	double current_zoom_y;
-	bool current_flip_x;
-	bool current_flip_y;
-
-	void BlitScreen(int x, int y, int ox, int oy, Rect const& src_rect);
-	void BlitScreenIntern(Bitmap const& draw_bitmap, int x, int y, int ox, int oy,
-							Rect const& src_rect, int opacity_split);
-	BitmapRef Refresh(Rect& rect);
 	void SetFlashEffect(const Color &color);
 };
 

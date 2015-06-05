@@ -20,10 +20,11 @@
 
 // Headers
 #include <string>
-#include <list>
 
 #include "system.h"
 #include "drawable.h"
+
+class Color;
 
 /**
  * Graphics namespace.
@@ -121,10 +122,12 @@ namespace Graphics {
 	 */
 	void Freeze();
 
-	void RegisterDrawable(Drawable* drawable);
-	void RemoveDrawable(Drawable* drawable);
-
-	void UpdateZCallback();
+	/**
+	 * Sets background color.
+	 *
+	 * @param color new background color.
+	 */
+	void SetBackcolor(Color const& color);
 
 	extern bool fps_on_screen;
 

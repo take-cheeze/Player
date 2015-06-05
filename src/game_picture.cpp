@@ -26,6 +26,7 @@
 #include "game_picture.h"
 #include "player.h"
 #include <vector>
+#include <boost/bind.hpp>
 
 /**
  * Picture class.
@@ -80,7 +81,7 @@ void Game_Picture::Show(const std::string& _name, bool _transparency) {
 		request->Unbind(request_id);
 	}
 	request = AsyncHandler::RequestFile("Picture", data.name);
-	request_id = request->Bind(&Game_Picture::OnPictureSpriteReady, this);
+	request_id = request->Bind(boost::bind(&Game_Picture::OnPictureSpriteReady, this, _1));
 	request->Start();
 
 	old_map_x = Game_Map::GetDisplayX();

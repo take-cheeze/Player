@@ -18,7 +18,6 @@
 // Headers
 #include <vector>
 #include "audio.h"
-#include "baseui.h"
 #include "cache.h"
 #include "game_system.h"
 #include "input.h"
@@ -27,6 +26,7 @@
 #include "scene_title.h"
 #include "util_macro.h"
 #include "bitmap.h"
+#include "font.h"
 
 Scene_End::Scene_End() {
 	Scene::type = Scene::End;

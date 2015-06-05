@@ -17,7 +17,6 @@
 
 // Headers
 #include <cstdlib>
-#include <iostream>
 #include <sstream>
 #include "game_interpreter.h"
 #include "audio.h"

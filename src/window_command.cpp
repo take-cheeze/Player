@@ -20,6 +20,8 @@
 #include "color.h"
 #include "bitmap.h"
 #include "util_macro.h"
+#include "text.h"
+#include "font.h"
 
 Window_Command::Window_Command(std::vector<std::string> commands, int width, int max_item) :
 	Window_Selectable(0, 0, GetRequiredWidth(commands, width), (max_item == -1 ? commands.size() : max_item) * 16 + 16),
@@ -29,7 +31,6 @@ Window_Command::Window_Command(std::vector<std::string> commands, int width, int
 	item_max = commands.size();
 
 	SetContents(Bitmap::Create(this->width - 16, item_max * 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	Refresh();
 }
@@ -37,27 +38,27 @@ Window_Command::Window_Command(std::vector<std::string> commands, int width, int
 void Window_Command::Refresh() {
 	contents->Clear();
 	for (int i = 0; i < item_max; i++) {
-		DrawItem(i, Font::ColorDefault);
+		DrawItem(i, Text::ColorDefault);
 	}
 }
 
-void Window_Command::DrawItem(int index, Font::SystemColor color) {
+void Window_Command::DrawItem(int index, int color) {
 	contents->ClearRect(Rect(0, 16 * index, contents->GetWidth() - 0, 16));
-	contents->TextDraw(0, 16 * index + 2, color, commands[index]);
+	Text::Draw(*contents, 0, 16 * index + 2, color, commands[index]);
 }
 
 void Window_Command::DisableItem(int i) {
-	DrawItem(i, Font::ColorDisabled);
+	DrawItem(i, Text::ColorDisabled);
 }
 
 void Window_Command::SetItemText(unsigned index, std::string const& text) {
 	if (index < commands.size()) {
 		commands[index] = text;
-		DrawItem(index, Font::ColorDefault);
+		DrawItem(index, Text::ColorDefault);
 	}
 }
 
-int Window_Command::GetRequiredWidth(std::vector<std::string>& commands, int width) {
+int Window_Command::GetRequiredWidth(std::vector<std::string> const& commands, int width) const {
 	if (width < 0) {
 		for (size_t i = 0; i < commands.size(); ++i) {
 			width = std::max(width, Font::Default()->GetSize(commands[i]).width);

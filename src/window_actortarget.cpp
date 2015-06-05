@@ -17,7 +17,6 @@
 
 // Headers
 #include "window_actortarget.h"
-#include "baseui.h"
 #include "cache.h"
 #include "game_actor.h"
 #include "game_party.h"
@@ -27,7 +26,6 @@ Window_ActorTarget::Window_ActorTarget(int ix, int iy, int iwidth, int iheight) 
 	Window_Selectable(ix, iy, iwidth, iheight) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	Refresh();
 }

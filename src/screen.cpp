@@ -17,7 +17,6 @@
 
 // Headers
 #include <string>
-#include "baseui.h"
 #include "bitmap.h"
 #include "color.h"
 #include "game_screen.h"
@@ -25,46 +24,9 @@
 #include "main_data.h"
 #include "screen.h"
 
-Screen::Screen() {
-	Graphics::RegisterDrawable(this);
-
+Screen::Screen() : Drawable(TypeScreen, 1050) {
 	default_tone = Tone(128, 128, 128, 128);
 }
 
-Screen::~Screen() {
-	Graphics::RemoveDrawable(this);
-}
-
-int Screen::GetZ() const {
-	return z;
-}
-
-DrawableType Screen::GetType() const {
-	return type;
-}
-
 void Screen::Update() {
-}
-
-void Screen::Draw() {
-	BitmapRef dst = DisplayUi->GetDisplaySurface();
-
-	Tone tone = Main_Data::game_screen->GetTone();
-
-	if (tone != default_tone) {
-		dst->ToneBlit(0, 0, *dst, Rect(0, 0, SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT), tone);
-	}
-
-	int flash_time_left;
-	int flash_current_level;
-	Color flash_color = Main_Data::game_screen->GetFlash(flash_current_level, flash_time_left);
-
-	if (flash_time_left > 0) {
-		if (!flash) {
-			flash = Bitmap::Create(SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT, flash_color);
-		} else {
-			flash->Fill(flash_color);
-		}
-		dst->Blit(0, 0, *flash, flash->GetRect(), flash_current_level);
-	}
 }

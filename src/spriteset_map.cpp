@@ -27,6 +27,7 @@
 #include "game_player.h"
 #include "game_vehicle.h"
 #include "bitmap.h"
+#include <boost/bind.hpp>
 
 // Constructor
 Spriteset_Map::Spriteset_Map() :
@@ -74,7 +75,7 @@ void Spriteset_Map::Update() {
 			panorama_request->Unbind(panorama_request_id);
 		}
 		panorama_request = AsyncHandler::RequestFile("Panorama", panorama_name);
-		panorama_request_id = panorama_request->Bind(&Spriteset_Map::OnPanoramaSpriteReady, this);
+		panorama_request_id = panorama_request->Bind(boost::bind(&Spriteset_Map::OnPanoramaSpriteReady, this, _1));
 		panorama_request->Start();
 	}
 	panorama.SetOx(Game_Map::GetParallaxX());
@@ -103,7 +104,7 @@ void Spriteset_Map::ChipsetUpdated() {
 		tilemap_request->Unbind(tilemap_request_id);
 	}
 	tilemap_request = AsyncHandler::RequestFile("ChipSet", Game_Map::GetChipsetName());
-	tilemap_request_id = tilemap_request->Bind(&Spriteset_Map::OnTilemapSpriteReady, this);
+	tilemap_request_id = tilemap_request->Bind(boost::bind(&Spriteset_Map::OnTilemapSpriteReady, this, _1));
 	tilemap_request->Start();
 
 	tilemap.SetPassableDown(Game_Map::GetPassagesDown());

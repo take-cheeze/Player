@@ -21,7 +21,7 @@
 #include "window_item.h"
 #include "game_party.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 
 Window_Item::Window_Item(int ix, int iy, int iwidth, int iheight) :
 	Window_Selectable(ix, iy, iwidth, iheight) {
@@ -92,9 +92,9 @@ void Window_Item::DrawItem(int index) {
 
 		std::stringstream ss;
 		ss << number;
-		Font::SystemColor color = enabled ? Font::ColorDefault : Font::ColorDisabled;
-		contents->TextDraw(rect.x + rect.width - 28, rect.y, color, "x");
-		contents->TextDraw(rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
+		Text::SystemColor color = enabled ? Text::ColorDefault : Text::ColorDisabled;
+		Text::Draw(*contents, rect.x + rect.width - 28, rect.y, color, "x");
+		Text::Draw(*contents, rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
 	}
 }
 

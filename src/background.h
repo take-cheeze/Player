@@ -29,25 +29,16 @@ class Background : public Drawable {
 public:
 	Background(const std::string& name);
 	Background(int terrain_id);
-	~Background();
 
 	void Draw();
 	void Update();
 
-	int GetZ() const;
-	DrawableType GetType() const;
-
 private:
-	static const int z = -1000;
-	static const DrawableType type = TypeBackground;
-
 	static void Update(int& rate, int& value);
 	static int Scale(int x);
 
 	void OnBackgroundGraphicReady(FileRequestResult* result);
 	void OnForegroundFrameGraphicReady(FileRequestResult* result);
-
-	bool visible;
 
 	BitmapRef bg_bitmap;
 	int bg_hscroll;

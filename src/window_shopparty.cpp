@@ -30,7 +30,6 @@ Window_ShopParty::Window_ShopParty(int ix, int iy, int iwidth, int iheight) :
 	Window_Base(ix, iy, iwidth, iheight) {
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	cycle = 0;
 	item_id = 0;
@@ -155,12 +154,13 @@ void Window_ShopParty::OnCharsetSpriteReady(FileRequestResult*, int party_index)
 		int sy = ((sprite_id / 4) * 4 + 2) * height;
 		Rect src(sx, sy, width, height);
 		for (int k = 0; k < 2; k++) {
-			BitmapRef bm2 = Bitmap::Create(width, height, true);
-			bm2->SetTransparentColor(bm->GetTransparentColor());
+			BitmapRef bm2 = Bitmap::Create(width, height);
 			bm2->Clear();
 			bm2->Blit(0, 0, *bm, src, 255);
+			/* TODO
 			if (k == 0)
 				bm2->ToneBlit(0, 0, *bm2, bm2->GetRect(), Tone(0, 0, 0, 255));
+			*/
 			bitmaps[party_index][j][k] = bm2;
 		}
 	}

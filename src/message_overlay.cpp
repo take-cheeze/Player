@@ -23,8 +23,7 @@
 #include <boost/algorithm/string.hpp>
 
 MessageOverlay::MessageOverlay() :
-	type(TypeMessageOverlay),
-	z(100),
+	Drawable(TypeMessageOverlay, 100, true),
 	ox(0),
 	oy(0),
 	text_height(12),
@@ -32,69 +31,10 @@ MessageOverlay::MessageOverlay() :
 	dirty(false),
 	counter(0),
 	show_all(false) {
-	
-	black = Bitmap::Create(DisplayUi->GetWidth(), text_height, Color());
 
-	bitmap = Bitmap::Create(DisplayUi->GetWidth(), text_height * message_max, true);
+	black = Bitmap::Create(SCREEN_TARGET_WIDTH, text_height, Color());
 
-	Graphics::RegisterDrawable(this);
-}
-
-MessageOverlay::~MessageOverlay() {
-	Graphics::RemoveDrawable(this);
-}
-
-bool MessageOverlay::IsGlobal() const {
-	return true;
-}
-
-void MessageOverlay::Draw() {
-	std::deque<MessageOverlayItem>::iterator it;
-
-	++counter;
-	if (counter > 150) {
-		counter = 0;
-		if (!messages.empty()) {
-			for (it = messages.begin(); it != messages.end(); ++it) {
-				if (!it->hidden) {
-					it->hidden = true;
-					break;
-				}
-			}
-			dirty = true;
-		}
-	} else {
-		if (!messages.empty()) {
-			DisplayUi->GetDisplaySurface()->Blit(ox, oy, *bitmap, bitmap->GetRect(), 255);
-		}
-	}
-
-	if (!dirty) return;
-
-	bitmap->Clear();
-
-	int i = 0;
-
-	for (it = messages.begin(); it != messages.end(); ++it) {
-		if (!it->hidden || show_all) {
-			bitmap->Blit(0, i * text_height, *black, black->GetRect(), 128);
-			bitmap->TextDraw(2, i * text_height, bitmap->GetWidth(), text_height,
-				it->color, it->text);
-			++i;
-		}
-	}
-
-	DisplayUi->GetDisplaySurface()->Blit(ox, oy, *bitmap, bitmap->GetRect(), 255);
-
-	dirty = false;
-}
-
-int MessageOverlay::GetZ() const {
-	return z;
-}
-
-DrawableType MessageOverlay::GetType() const {
-	return type;
+	bitmap = Bitmap::Create(SCREEN_TARGET_WIDTH, text_height * message_max);
 }
 
 void MessageOverlay::AddMessage(const std::string& message, Color color) {

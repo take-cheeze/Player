@@ -57,13 +57,12 @@ Window_Message::Window_Message(int ix, int iy, int iwidth, int iheight) :
 	gold_window(new Window_Gold(232, 0, 88, 32))
 {
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	if (Data::battlecommands.transparency == RPG::BattleCommands::Transparency_transparent) {
 		SetBackOpacity(128);
 	}
 
-	visible = false;
+	SetVisible(false);
 	SetZ(10000);
 
 	escape_char = (Player::escape_symbol == "\xC2\xA5" ? L'\u00A5' :
@@ -71,7 +70,7 @@ Window_Message::Window_Message(int ix, int iy, int iwidth, int iheight) :
 		      L'\\'));
 	active = false;
 	index = -1;
-	text_color = Font::ColorDefault;
+	text_color = Text::ColorDefault;
 
 	number_input_window->SetVisible(false);
 
@@ -173,7 +172,7 @@ void Window_Message::InsertNewPage() {
 
 	contents_y = 2;
 	line_count = 0;
-	text_color = Font::ColorDefault;
+	text_color = Text::ColorDefault;
 	speed_modifier = 0;
 
 	if (Game_Message::num_input_start == 0 && Game_Message::num_input_variable_id > 0) {
@@ -194,12 +193,12 @@ void Window_Message::InsertNewLine() {
 
 	if (line_count >= Game_Message::choice_start && Game_Message::choice_max > 0) {
 		// A choice resets the font color
-		text_color = Font::ColorDefault;
+		text_color = Text::ColorDefault;
 
 		unsigned choice_index = line_count - Game_Message::choice_start;
 		// Check for disabled choices
 		if (Game_Message::choice_disabled.test(choice_index)) {
-			text_color = Font::ColorDisabled;
+			text_color = Text::ColorDisabled;
 		}
 
 		contents_x += 12;
@@ -245,7 +244,7 @@ void Window_Message::Update() {
 	number_input_window->Update();
 
 	if (!IsNextMessagePossible() && Game_Message::closing) {
-		if (visible && !closing) {
+		if (GetVisible() && !closing) {
 			// The Event Page ended but the MsgBox was used in this Event
 			// It can be closed now.
 			TerminateMessage();
@@ -254,7 +253,7 @@ void Window_Message::Update() {
 			} else {
 				SetCloseAnimation(5);
 			}
-		} else if (!visible && !closing) {
+		} else if (!GetVisible() && !closing) {
 			// The closing animation has finished
 			Game_Message::visible = false;
 			Game_Message::closing = false;
@@ -280,7 +279,7 @@ void Window_Message::Update() {
 
 		StartMessageProcessing();
 		//printf("Text: %s\n", text.c_str());
-		if (!visible) {
+		if (!GetVisible()) {
 			// The MessageBox is not open yet but text output is needed
 			// Open and Close Animations are skipped in battle
 			if (Game_Temp::battle_running) {
@@ -288,7 +287,7 @@ void Window_Message::Update() {
 			} else {
 				SetOpenAnimation(5);
 			}
-			visible = true;
+			SetVisible(true);
 		}
 		Game_Message::visible = true;
 	}
@@ -369,7 +368,7 @@ void Window_Message::UpdateMessage() {
 			case 'v':
 				// These commands support indirect access via \v[]
 				command_result = ParseCommandCode();
-				contents->TextDraw(contents_x, contents_y, text_color, command_result);
+				Text::Draw(*contents, contents_x, contents_y, text_color, command_result);
 				contents_x += contents->GetFont()->GetSize(command_result).width;
 				break;
 			case '_':
@@ -413,7 +412,7 @@ void Window_Message::UpdateMessage() {
 			default:
 				if (*text_index == escape_char) {
 					// Show Escape Symbol
-					contents->TextDraw(contents_x, contents_y, text_color, Player::escape_symbol);
+					Text::Draw(*contents, contents_x, contents_y, text_color, Player::escape_symbol);
 					contents_x += contents->GetFont()->GetSize(Player::escape_symbol).width;
 				}
 			}
@@ -421,14 +420,14 @@ void Window_Message::UpdateMessage() {
 				   && std::distance(text_index, end) > 1
 				   && std::isalpha(*boost::next(text_index))) {
 			// ExFont
-			contents->TextDraw(contents_x, contents_y, text_color,
+			Text::Draw(*contents, contents_x, contents_y, text_color,
 							   std::string(text_index.base(), boost::next(text_index, 2).base()));
 			contents_x += 12;
 			++text_index;
 		} else {
 			std::string const glyph(text_index.base(), boost::next(text_index).base());
 
-			contents->TextDraw(contents_x, contents_y, text_color, glyph);
+			Text::Draw(*contents, contents_x, contents_y, text_color, glyph);
 			contents_x += contents->GetFont()->GetSize(glyph).width;
 		}
 

@@ -31,29 +31,12 @@ class Bitmap;
 class Weather : public Drawable {
 public:
 	Weather();
-	~Weather();
 
 	void Draw();
 	void Update();
 
-	int GetZ() const;
-	DrawableType GetType() const;
-
 private:
-	void DrawRain();
-	void DrawSnow();
-	void DrawFog();
-	void DrawSandstorm();
-
-	static const int z = 1001;
-	static const DrawableType type = TypeWeather;
-
-	//boost::scoped_ptr<Plane> weather_plane;
-	BitmapRef weather_surface;
-	BitmapRef snow_bitmap;
-	BitmapRef rain_bitmap;
-
-	bool dirty;
+	static BitmapRef snow_bitmap, rain_bitmap;
 };
 
 #endif

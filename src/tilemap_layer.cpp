@@ -24,6 +24,7 @@
 #include "player.h"
 #include "map_data.h"
 #include "bitmap.h"
+#include "rect.h"
 
 // Blocks subtiles IDs
 // Mess with this code and you will die in 3 days...
@@ -151,27 +152,18 @@ TilemapLayer::TilemapLayer(int ilayer) :
 	memset(autotiles_ab, 0, sizeof(autotiles_ab));
 	memset(autotiles_d, 0, sizeof(autotiles_d));
 
-	int tiles_y = (int)ceil(DisplayUi->GetHeight() / (float)TILE_SIZE) + 1;
+	int tiles_y = (int)ceil(SCREEN_TARGET_HEIGHT / (float)TILE_SIZE) + 1;
 	for (int i = 0; i < tiles_y + 2; i++) {
 		tilemap_tiles.push_back(EASYRPG_MAKE_SHARED<TilemapTile>(this, TILE_SIZE * i));
 	}
-}
-
-void TilemapLayer::DrawTile(Bitmap& screen, int x, int y, int row, int col, bool autotile) {
-	if (!autotile && screen.GetTileOpacity(row, col) == Bitmap::Transparent)
-		return;
-	Rect rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-
-	BitmapRef dst = DisplayUi->GetDisplaySurface();
-	dst->Blit(x, y, screen, rect, 255);
 }
 
 void TilemapLayer::Draw(int z_order) {
 	if (!visible) return;
 
 	// Get the number of tiles that can be displayed on window
-	int tiles_x = (int)ceil(DisplayUi->GetWidth() / (float)TILE_SIZE);
-	int tiles_y = (int)ceil(DisplayUi->GetHeight() / (float)TILE_SIZE);
+	int tiles_x = (int)ceil(SCREEN_TARGET_WIDTH / (float)TILE_SIZE);
+	int tiles_y = (int)ceil(SCREEN_TARGET_HEIGHT / (float)TILE_SIZE);
 
 	// If ox or oy are not equal to the tile size draw the next tile too
 	// to prevent black (empty) tiles at the borders
@@ -228,7 +220,7 @@ void TilemapLayer::Draw(int z_order) {
 							row = (id - 96) / 6;
 						}
 
-						DrawTile(*chipset, map_draw_x, map_draw_y, row, col, false);
+						DrawTile(chipset, map_draw_x, map_draw_y, row, col, false);
 					} else if (tile.ID >= BLOCK_C && tile.ID < BLOCK_D) {
 						// If Block C
 
@@ -237,19 +229,19 @@ void TilemapLayer::Draw(int z_order) {
 						int row = 4 + animation_step_c;
 
 						// Draw the tile
-						DrawTile(*chipset, map_draw_x, map_draw_y, row, col, false);
+						DrawTile(chipset, map_draw_x, map_draw_y, row, col, false);
 					} else if (tile.ID < BLOCK_C) {
 						// If Blocks A1, A2, B
 
 						// Draw the tile from autotile cache
 						TileXY pos = GetCachedAutotileAB(tile.ID, animation_step_ab);
-						DrawTile(*autotiles_ab_screen, map_draw_x, map_draw_y, pos.y, pos.x, true);
+						DrawTile(autotiles_ab_screen, map_draw_x, map_draw_y, pos.y, pos.x, true);
 					} else {
 						// If blocks D1-D12
 
 						// Draw the tile from autotile cache
 						TileXY pos = GetCachedAutotileD(tile.ID);
-						DrawTile(*autotiles_d_screen, map_draw_x, map_draw_y, pos.y, pos.x, true);
+						DrawTile(autotiles_d_screen, map_draw_x, map_draw_y, pos.y, pos.x, true);
 					}
 				} else {
 					// If upper layer
@@ -271,7 +263,7 @@ void TilemapLayer::Draw(int z_order) {
 						}
 
 						// Draw the tile
-						DrawTile(*chipset, map_draw_x, map_draw_y, row, col, false);
+						DrawTile(chipset, map_draw_x, map_draw_y, row, col, false);
 					}
 				}
 			}
@@ -698,15 +690,9 @@ void TilemapLayer::Substitute(int old_id, int new_id) {
 }
 
 TilemapTile::TilemapTile(TilemapLayer* tilemap, int z) :
-	type(TypeTilemap),
-	tilemap(tilemap),
-	z(z)
+	Drawable(TypeTilemap, z),
+	tilemap(tilemap)
 {
-	Graphics::RegisterDrawable(this);
-}
-
-TilemapTile::~TilemapTile() {
-	Graphics::RemoveDrawable(this);
 }
 
 void TilemapTile::Draw() {
@@ -715,12 +701,4 @@ void TilemapTile::Draw() {
 	}
 
 	tilemap->Draw(GetZ());
-}
-
-int TilemapTile::GetZ() const {
-	return z;
-}
-
-DrawableType TilemapTile::GetType() const {
-	return type;
 }

@@ -27,6 +27,7 @@
 #include "game_actors.h"
 #include "window_battlecommand.h"
 #include "bitmap.h"
+#include "text.h"
 
 Window_BattleCommand::Window_BattleCommand(int x, int y, int width, int height) :
 	Window_Base(x, y, width, height) {
@@ -39,7 +40,6 @@ Window_BattleCommand::Window_BattleCommand(int x, int y, int width, int height) 
 	cycle = 0;
 
 	SetContents(Bitmap::Create(width - 16, height - 16));
-	contents->SetTransparentColor(windowskin->GetTransparentColor());
 
 	num_rows = contents->GetHeight() / 16;
 
@@ -105,7 +105,7 @@ void Window_BattleCommand::Refresh() {
 
 	contents->Clear();
 	for (int i = 0; i < num_commands; i++) {
-		Font::SystemColor color = disabled[i] ? Font::ColorDisabled : Font::ColorDefault;
+		Text::SystemColor color = disabled[i] ? Text::ColorDisabled : Text::ColorDefault;
 		DrawItem(i, color);
 	}
 
@@ -119,12 +119,12 @@ void Window_BattleCommand::Refresh() {
 	}
 }
 
-void Window_BattleCommand::DrawItem(int index, Font::SystemColor color) {
+void Window_BattleCommand::DrawItem(int index, int color) {
 	int y = 16 * (index - top_row);
 	if (y < 0 || y + 16 > contents->GetHeight())
 		return;
 	contents->ClearRect(Rect(0, y, contents->GetWidth(), 16));
-	contents->TextDraw(2, y + 2, color, commands[index]);
+	Text::Draw(*contents, 2, y + 2, color, commands[index]);
 }
 
 int Window_BattleCommand::GetIndex() {

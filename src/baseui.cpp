@@ -39,7 +39,6 @@ BaseUi::BaseUi()
 	, mouse_x(0)
 	, mouse_y(0)
 	, cursor_visible(false)
-	, back_color(0, 0, 0, 255)
 {
 	keys.reset();
 }
@@ -48,19 +47,12 @@ BaseUi::KeyStatus& BaseUi::GetKeyStates() {
 	return keys;
 }
 
-BitmapRef const& BaseUi::GetDisplaySurface() const {
-	return main_surface;
-}
-BitmapRef& BaseUi::GetDisplaySurface() {
-	return main_surface;
-}
-
 long BaseUi::GetWidth() const {
-	return current_display_mode.width;
+	return current_display_mode.width * (current_display_mode.zoom? 2 : 1);
 }
 
 long BaseUi::GetHeight() const {
-	return current_display_mode.height;
+	return current_display_mode.height * (current_display_mode.zoom? 2 : 1);
 }
 
 bool BaseUi::GetMouseFocus() const {
@@ -73,15 +65,4 @@ int BaseUi::GetMousePosX() const {
 
 int BaseUi::GetMousePosY() const {
 	return mouse_y;
-}
-
-Color const& BaseUi::GetBackcolor() const {
-	return back_color;
-}
-void BaseUi::SetBackcolor(const Color &color) {
-	back_color = color;
-}
-
-void BaseUi::CleanDisplay() {
-	main_surface->FillRect(main_surface->GetRect(), back_color);
 }

@@ -35,15 +35,24 @@ enum DrawableType {
  */
 class Drawable {
 public:
-	virtual ~Drawable() {};
+	Drawable(DrawableType t, int z, bool g = false);
+	virtual ~Drawable();
 
 	virtual void Draw() = 0;
 
-	virtual int GetZ() const = 0;
+	int GetZ() const;
+	void SetZ(int z);
 
-	virtual DrawableType GetType() const = 0;
+	DrawableType GetType() const;
 
-	virtual bool IsGlobal() const { return false; }
+	void SetVisible(bool v);
+	bool GetVisible() const;
+
+private:
+	DrawableType type;
+	int z;
+	bool global;
+	bool visible;
 };
 
 #endif

@@ -35,8 +35,6 @@ public:
 	 */
 	Sprite_Timer(int which);
 
-	~Sprite_Timer();
-
 	/**
 	 * Updates sprite state.
 	 */

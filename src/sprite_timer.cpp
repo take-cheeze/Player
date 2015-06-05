@@ -36,44 +36,6 @@ Sprite_Timer::Sprite_Timer(int which) :
 	CreateSprite();
 }
 
-Sprite_Timer::~Sprite_Timer() {
-}
-
-void Sprite_Timer::Draw() {
-	bool timer_visible;
-	bool battle;
-
-	Main_Data::game_party->GetTimer(which, &timer_visible, &battle);
-
-	if (!GetVisible() || !timer_visible) {
-		return;
-	}
-
-	// In battle but not a battle timer
-	if (Game_Temp::battle_running && !battle) {
-		return;
-	}
-
-	std::string system_name = Game_System::GetSystemName();
-	if (system_name.empty()) {
-		return;
-	}
-
-	BitmapRef system = Cache::System(system_name);
-
-	GetBitmap()->Clear();
-	for (int i = 0; i < 5; ++i) {
-		if (i == 2) { // :
-			if (counter % DEFAULT_FPS >= DEFAULT_FPS / 2) {
-				continue;
-			}
-		}
-		GetBitmap()->Blit(i * 8, 0, *system, digits[i], Opacity());
-	}
-
-	Sprite::Draw();
-}
-
 void Sprite_Timer::Update() {
 	bool timer_visible;
 	bool battle;
@@ -152,4 +114,39 @@ void Sprite_Timer::CreateSprite() {
 		default:
 			break;
 	}
+}
+
+void Sprite_Timer::Draw() {
+	bool timer_visible;
+	bool battle;
+
+	Main_Data::game_party->GetTimer(which, &timer_visible, &battle);
+
+	if (!timer_visible) {
+		return;
+	}
+
+	// In battle but not a battle timer
+	if (Game_Temp::battle_running && !battle) {
+		return;
+	}
+
+	std::string system_name = Game_System::GetSystemName();
+	if (system_name.empty()) {
+		return;
+	}
+
+	BitmapRef system = Cache::System(system_name);
+
+	GetBitmap()->Clear();
+	for (int i = 0; i < 5; ++i) {
+		if (i == 2) { // :
+			if (counter % DEFAULT_FPS >= DEFAULT_FPS / 2) {
+				continue;
+			}
+		}
+		GetBitmap()->Blit(i * 8, 0, *system, digits[i]);
+	}
+
+	Sprite::Draw();
 }

@@ -22,26 +22,9 @@
 #include "bitmap.h"
 
 Plane::Plane() :
-	type(TypePlane),
-	visible(true),
-	z(0),
+	Drawable(TypePlane, 0),
 	ox(0),
 	oy(0) {
-
-	Graphics::RegisterDrawable(this);
-}
-
-Plane::~Plane() {
-	Graphics::RemoveDrawable(this);
-}
-
-void Plane::Draw() {
-	if (!visible || !bitmap) return;
-
-	BitmapRef dst = DisplayUi->GetDisplaySurface();
-	Rect dst_rect(0, 0, DisplayUi->GetWidth(), DisplayUi->GetHeight());
-
-	dst->TiledBlit(-ox, -oy, bitmap->GetRect(), *bitmap, dst_rect, 255);
 }
 
 BitmapRef const& Plane::GetBitmap() const {
@@ -49,20 +32,6 @@ BitmapRef const& Plane::GetBitmap() const {
 }
 void Plane::SetBitmap(BitmapRef const& nbitmap) {
 	bitmap = nbitmap;
-}
-
-bool Plane::GetVisible() const {
-	return visible;
-}
-void Plane::SetVisible(bool nvisible) {
-	visible = nvisible;
-}
-int Plane::GetZ() const {
-	return z;
-}
-void Plane::SetZ(int nz) {
-	if (z != nz) Graphics::UpdateZCallback();
-	z = nz;
 }
 int Plane::GetOx() const {
 	return ox;
@@ -75,8 +44,4 @@ int Plane::GetOy() const {
 }
 void Plane::SetOy(int noy) {
 	oy = noy;
-}
-
-DrawableType Plane::GetType() const {
-	return type;
 }

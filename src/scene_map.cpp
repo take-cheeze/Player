@@ -51,7 +51,7 @@ void Scene_Map::Start() {
 
 	// Draw background to prevent System graphic shining through
 	background.reset(new Sprite());
-	background->SetBitmap(Bitmap::Create(DisplayUi->GetWidth(), DisplayUi->GetHeight(), Color(0, 0, 0, 255)));
+	background->SetBitmap(Bitmap::Create(SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT, Color(0, 0, 0, 255)));
 	background->SetZ(-10000);
 
 	screen.reset(new Screen());

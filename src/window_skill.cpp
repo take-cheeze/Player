@@ -23,7 +23,7 @@
 #include "game_actors.h"
 #include "game_temp.h"
 #include "bitmap.h"
-#include "font.h"
+#include "text.h"
 #include "player.h"
 
 Window_Skill::Window_Skill(int ix, int iy, int iwidth, int iheight) :
@@ -77,12 +77,12 @@ void Window_Skill::DrawItem(int index) {
 	if (skill_id > 0) {
 		int costs = Data::skills[skill_id - 1].sp_cost;
 		bool enabled = CheckEnable(skill_id);
-		int color = !enabled ? Font::ColorDisabled : Font::ColorDefault;
+		int color = !enabled ? Text::ColorDisabled : Text::ColorDefault;
 
 		std::stringstream ss;
 		ss << costs;
-		contents->TextDraw(rect.x + rect.width - 28, rect.y, color, "-");
-		contents->TextDraw(rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, rect.x + rect.width - 28, rect.y, color, "-");
+		Text::Draw(*contents, rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
 
 		DrawSkillName(&Data::skills[skill_id - 1], rect.x, rect.y, enabled);
 	}

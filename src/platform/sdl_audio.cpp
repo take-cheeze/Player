@@ -22,7 +22,7 @@
 
 
 #ifdef _WIN32
-#  include "util_win.h"
+#  include "util_win.cpp"
 #endif
 
 SdlAudio::SdlAudio() :

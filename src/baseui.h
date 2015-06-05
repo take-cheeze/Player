@@ -23,9 +23,6 @@
 #include <bitset>
 
 #include "system.h"
-#include "color.h"
-#include "font.h"
-#include "rect.h"
 #include "keys.h"
 
 struct AudioInterface;
@@ -85,29 +82,9 @@ public:
 	virtual void ProcessEvents() = 0;
 
 	/**
-	 * Cleans video buffer.
-	 */
-	void CleanDisplay();
-
-	/**
 	 * Updates video buffer.
 	 */
 	virtual void UpdateDisplay() = 0;
-
-	/**
-	 * Begins screen capture. While this mode is active
-	 * all drawing to screen will be applied to an internal
-	 * Bitmap, that is returned by the EndScreenCapture
-	 * method.
-	 */
-	virtual void BeginScreenCapture() = 0;
-
-	/**
-	 * Ends screen capture and get the drawn contents.
-	 *
-	 * @return bitmap with drawn contents.
-	 */
-	virtual BitmapRef EndScreenCapture() = 0;
 
 	/**
 	 * Sets display title.
@@ -187,23 +164,6 @@ public:
 	 */
 	int GetMousePosY() const;
 
-	/**
-	 * Gets background color.
-	 *
-	 * @return background color.
-	 */
-	Color const& GetBackcolor() const;
-
-	/**
-	 * Sets background color.
-	 *
-	 * @param color new background color.
-	 */
-	void SetBackcolor(const Color &color);
-
-	BitmapRef const& GetDisplaySurface() const;
-	BitmapRef& GetDisplaySurface();
-
 	typedef std::bitset<Input::Keys::KEYS_COUNT> KeyStatus;
 
 	/**
@@ -212,6 +172,12 @@ public:
 	 * @returns vector with the all keys pressed states.
 	 */
 	KeyStatus& GetKeyStates();
+
+
+	/**
+	 * Makes OpenGL context of the window current.
+	 */
+	virtual void MakeGLContextCurrent() = 0;
 
 protected:
 	/**
@@ -237,9 +203,6 @@ protected:
 
 	KeyStatus keys;
 
-	/** Surface used for zoom. */
-	BitmapRef main_surface;
-
 	/** Mouse hovering the window flag. */
 	bool mouse_focus;
 
@@ -251,9 +214,6 @@ protected:
 
 	/** Cursor visibility flag. */
 	bool cursor_visible;
-
-	/** Color for display background. */
-	Color back_color;
 };
 
 /** Global DisplayUi variable. */
