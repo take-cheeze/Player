@@ -570,13 +570,13 @@ void render_texture(
 			   1, GL_FALSE, glm::value_ptr(model_mat));
 
 	if (eff.waver_depth == 0) {
-		EASYRPG_ARRAY<GLfloat, 2 * 4> dst_coord, src_coord;
+		EASYRPG_ARRAY<GLshort, 2 * 4> dst_coord, src_coord;
 		// set base coord
 		for (int i = 0; i < 4; ++i) {
 			src_coord[2 * i + 0] = src_rect.x;
 			src_coord[2 * i + 1] = src_rect.y;
-			dst_coord[2 * i + 0] = 0.f;
-			dst_coord[2 * i + 1] = 0.f;
+			dst_coord[2 * i + 0] = 0;
+			dst_coord[2 * i + 1] = 0;
 		}
 		// set size of rectangle
 		dst_coord[2 * 1 + 0] += dst_rect.width;
@@ -617,13 +617,13 @@ void render_texture(
 		*/
 
 		glVertexAttribPointer(program->attrib_location("a_position"), 2,
-				      GL_FLOAT, GL_FALSE, 0, dst_coord.data());
+				      GL_SHORT, GL_FALSE, 0, dst_coord.data());
 		glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
-				      GL_FLOAT, GL_FALSE, 0, src_coord.data());
+				      GL_SHORT, GL_FALSE, 0, src_coord.data());
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	} else {
-		std::vector<GLfloat>
+		std::vector<GLshort>
 				dst_coords(2 * (src_rect.height + 1)),
 				src_coords(2 * (src_rect.height + 1));
 		for (int i = 0; i < (src_rect.height + 1); ++i) {
@@ -640,9 +640,9 @@ void render_texture(
 		}
 
 		glVertexAttribPointer(program->attrib_location("a_position"), 2,
-				      GL_FLOAT, GL_FALSE, 0, &dst_coords.front());
+				      GL_SHORT, GL_FALSE, 0, &dst_coords.front());
 		glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
-				      GL_FLOAT, GL_FALSE, 0, &src_coords.front());
+				      GL_SHORT, GL_FALSE, 0, &src_coords.front());
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, src_rect.height + 1);
 	}
@@ -697,11 +697,11 @@ void tiled_render_texture(
 	glUniformMatrix4fv(program->uniform_location("u_model_mat"),
 			   1, GL_FALSE, glm::value_ptr(model_mat));
 
-	EASYRPG_ARRAY<GLfloat, 2 * 4> dst_coord, src_coord;
+	EASYRPG_ARRAY<GLshort, 2 * 4> dst_coord, src_coord;
 	// set base coord
 	for (int i = 0; i < 4; ++i) {
-		dst_coord[2 * i + 0] = 0.f;
-		dst_coord[2 * i + 1] = 0.f;
+		dst_coord[2 * i + 0] = 0;
+		dst_coord[2 * i + 1] = 0;
 		src_coord[2 * i + 0] = eff.ox;
 		src_coord[2 * i + 1] = eff.oy + dst_rect.height % src_rect.height;
 	}
@@ -734,9 +734,9 @@ void tiled_render_texture(
 	*/
 
 	glVertexAttribPointer(program->attrib_location("a_position"), 2,
-			      GL_FLOAT, GL_FALSE, 0, dst_coord.data());
+			      GL_SHORT, GL_FALSE, 0, dst_coord.data());
 	glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
-			      GL_FLOAT, GL_FALSE, 0, src_coord.data());
+			      GL_SHORT, GL_FALSE, 0, src_coord.data());
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -768,11 +768,11 @@ void fill_effect(Rect const& rect, RenderEffects const& eff) {
 			   1, GL_FALSE, glm::value_ptr(model_mat));
 
 
-	EASYRPG_ARRAY<GLfloat, 2 * 4> coord;
+	EASYRPG_ARRAY<GLshort, 2 * 4> coord;
 	// set base coord
 	for (int i = 0; i < 4; ++i) {
-		coord[2 * i + 0] = 0.f;
-		coord[2 * i + 1] = 0.f;
+		coord[2 * i + 0] = 0;
+		coord[2 * i + 1] = 0;
 	}
 	// set size of rectangle
 	coord[2 * 1 + 0] += rect.width;
@@ -785,7 +785,7 @@ void fill_effect(Rect const& rect, RenderEffects const& eff) {
 	}
 
 	glVertexAttribPointer(program->attrib_location("a_position"), 2,
-			      GL_FLOAT, GL_FALSE, 0, coord.data());
+			      GL_SHORT, GL_FALSE, 0, coord.data());
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
