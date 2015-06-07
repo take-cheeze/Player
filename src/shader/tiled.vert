@@ -1,5 +1,6 @@
-#ifdef GL_ES
-#version 100
+#ifndef GL_ES
+#define lowp
+#define mediump
 #endif
 
 attribute vec2 a_position;
@@ -9,7 +10,7 @@ uniform mat4 u_proj_mat;
 uniform mat4 u_model_mat;
 uniform mat4 u_tex_mat;
 
-varying vec2 v_tex_coord;
+varying mediump vec2 v_tex_coord;
 
 void main() {
   v_tex_coord = (u_tex_mat * vec4(a_tex_coord, 0.0, 1.0)).xy;

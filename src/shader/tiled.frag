@@ -1,23 +1,23 @@
-#ifdef GL_ES
-#version 100
-precision mediump float;
+#ifndef GL_ES
+#define lowp
+#define mediump
 #endif
 
-varying vec2 v_tex_coord;
+varying mediump vec2 v_tex_coord;
 
-uniform sampler2D u_texture;
-uniform vec2 u_tex_base_coord;
-uniform vec2 u_tex_range;
-uniform float u_opacity;
-uniform vec4 u_tone;
-uniform vec4 u_color;
+uniform lowp sampler2D u_texture;
+uniform mediump vec2 u_tex_base_coord;
+uniform mediump vec2 u_tex_range;
+uniform lowp float u_opacity;
+uniform lowp vec4 u_tone;
+uniform lowp vec4 u_color;
 
-const vec3 lumaF = vec3(.299, .587, .114);
+const lowp vec3 lumaF = vec3(.299, .587, .114);
 
 void main() {
-  vec4 result = texture2D(u_texture, u_tex_base_coord + mod(v_tex_coord, u_tex_range));
+  lowp vec4 result = texture2D(u_texture, u_tex_base_coord + mod(v_tex_coord, u_tex_range));
 
-  float luma = dot(result.rgb, lumaF);
+  lowp float luma = dot(result.rgb, lumaF);
   result.rgb = mix(result.rgb, vec3(luma), u_tone.w);
   result.rgb += u_tone.rgb;
 

@@ -1,5 +1,6 @@
-#ifdef GL_ES
-#version 100
+#ifndef GL_ES
+#define lowp
+#define mediump
 #endif
 
 attribute vec2 a_position;
