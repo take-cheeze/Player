@@ -1417,7 +1417,7 @@ void Window::Draw() {
 		}
 
 		// frame
-		if (width > 0 && height > 0 && opacity > 0 and ianimation_count > 0) {
+		if (width > 0 && height > 0 && opacity > 0 and (animation_frames == 0 or ianimation_count > 0)) {
 			int dst_x = x, dst_y = y;
 			size_t dst_w = width, dst_h = height;
 			if (animation_frames > 0) {
