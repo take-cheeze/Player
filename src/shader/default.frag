@@ -17,15 +17,24 @@ const vec3 lumaF = vec3(.299, .587, .114);
 void main() {
   lowp vec4 result = texture2D(u_texture, v_tex_coord);
 
-  lowp float luma = dot(result.rgb, lumaF);
-  result.rgb = mix(result.rgb, vec3(luma), u_tone.w);
-  result.rgb += u_tone.rgb;
+  if (u_tone != vec4(0.0, 0.0, 0.0, 0.0)) {
+    lowp float luma = dot(result.rgb, lumaF);
+    result.rgb = mix(result.rgb, vec3(luma), u_tone.w);
+    result.rgb += u_tone.rgb;
+  }
 
-  result.a *= u_opacity;
-  result.rgb = mix(result.rgb, u_color.rgb, u_color.a);
+  if (u_opacity != 1.0) {
+    result.a *= u_opacity;
+  }
 
-  lowp float under_bush = float(v_tex_coord.y <= u_bush_depth);
-  result.a *= clamp(u_bush_opacity + under_bush, 0.0, 1.0);
+  if (u_color.a != 0.0) {
+    result.rgb = mix(result.rgb, u_color.rgb, u_color.a);
+  }
+
+  if (u_bush_opacity != 1.0) {
+    lowp float under_bush = float(v_tex_coord.y <= u_bush_depth);
+    result.a *= clamp(u_bush_opacity + under_bush, 0.0, 1.0);
+  }
 
   gl_FragColor = result;
 }

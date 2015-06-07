@@ -17,12 +17,19 @@ const lowp vec3 lumaF = vec3(.299, .587, .114);
 void main() {
   lowp vec4 result = texture2D(u_texture, u_tex_base_coord + mod(v_tex_coord, u_tex_range));
 
-  lowp float luma = dot(result.rgb, lumaF);
-  result.rgb = mix(result.rgb, vec3(luma), u_tone.w);
-  result.rgb += u_tone.rgb;
+  if (u_tone != vec4(0.0, 0.0, 0.0, 0.0)) {
+    lowp float luma = dot(result.rgb, lumaF);
+    result.rgb = mix(result.rgb, vec3(luma), u_tone.w);
+    result.rgb += u_tone.rgb;
+  }
 
-  result.a *= u_opacity;
-  result.rgb = mix(result.rgb, u_color.rgb, u_color.a);
+  if (u_opacity != 1.0) {
+    result.a *= u_opacity;
+  }
+
+  if (u_color.a != 0.0) {
+    result.rgb = mix(result.rgb, u_color.rgb, u_color.a);
+  }
 
   gl_FragColor = result;
 }

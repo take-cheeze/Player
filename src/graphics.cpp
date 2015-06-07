@@ -1324,8 +1324,10 @@ void Sprite::Draw() {
 	eff.waver_phase = waver_effect_phase;
 	eff.waver_depth = waver_effect_depth;
 	eff.opacity = opacity_top_effect;
-	eff.bush_opacity = opacity_bottom_effect;
-	if (bush_effect != 0) eff.bush_depth = bush_effect;
+	if (bush_effect > 0) {
+		eff.bush_opacity = opacity_bottom_effect;
+		eff.bush_depth = bush_effect;
+	}
 	render_texture(Rect(x, y, src_rect.width, src_rect.height), bitmap, src_rect, eff);
 }
 
