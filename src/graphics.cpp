@@ -480,8 +480,9 @@ std::vector<GLuint> Shader::released_;
 std::vector<GLuint> Program::released_;
 std::vector<GLuint> Texture2D::released_;
 void clear_gl_objects() {
-	for (texture_map_type::const_iterator i = tex_map_.cbegin(); i != tex_map_.cend(); ++i) {
+	for (texture_map_type::const_iterator i = tex_map_.cbegin(); i != tex_map_.cend(); ) {
 		if (i->second.bitmap.expired()) { i = tex_map_.erase(i); }
+		else { ++i; }
 	}
 
 	Shader::clear_released();

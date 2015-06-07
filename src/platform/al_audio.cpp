@@ -442,14 +442,13 @@ void ALAudio::Update() {
 	bgs_src_->update();
 	me_src_->update();
 
-	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ++i) {
+	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ) {
 		i->get()->update();
 
 		ALenum state = AL_INVALID_VALUE;
 		alGetSourcei(i->get()->get(), AL_SOURCE_STATE, &state);
-		if (state == AL_STOPPED) {
-			i = se_src_.erase(i);
-		}
+		if (state == AL_STOPPED) { i = se_src_.erase(i); }
+		else { ++i; }
 	}
 }
 
