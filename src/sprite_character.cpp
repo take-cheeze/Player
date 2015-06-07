@@ -67,6 +67,8 @@ void Sprite_Character::Update() {
 	if (tile_id == 0) {
 		int row = character->GetSpriteDirection();
 		r.Set(character->GetPattern() * chara_width, row * chara_height, chara_width, chara_height);
+		r.x += (character_index % 4) * chara_width * 3;
+		r.y += (character_index / 4) * chara_height * 4;
 		SetSrcRect(r);
 	}
 
