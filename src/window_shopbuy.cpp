@@ -63,7 +63,7 @@ void Window_ShopBuy::DrawItem(int index) {
 
 	std::stringstream ss;
 	ss << Data::items[item_id - 1].price;
-	Text::Draw(*contents, rect.width + 4, rect.y, enabled ? Text::ColorDefault : Text::ColorDisabled, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, rect.y, rect.width + 4, 12), enabled ? Text::ColorDefault : Text::ColorDisabled, ss.str(), Text::AlignRight);
 }
 
 void Window_ShopBuy::UpdateHelp() {

@@ -40,7 +40,7 @@ namespace Text {
 		ColorKnockout = 5
 	};
 
-	void Draw(Bitmap& dest, int x, int y, int color, std::string const& text, Text::Alignment align = Text::AlignLeft);
+	void Draw(Bitmap& dest, int x, int y, int color, std::string const& text);
 	void Draw(Bitmap& dest, Rect const& dst_rect, int color, std::string const& text, Text::Alignment align = Text::AlignLeft);
 
 	/**

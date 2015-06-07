@@ -49,7 +49,7 @@ void Window_TargetStatus::Refresh() {
 		ss << Data::skills[id - 1].sp_cost;
 	}
 
-	Text::Draw(*contents, contents->GetWidth() - contents->GetFont()->GetSize(ss.str()).width, 0, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, 0, contents->GetWidth() - contents->GetFont()->GetSize(ss.str()).width, 12), Text::ColorDefault, ss.str(), Text::AlignRight);
 }
 
 void Window_TargetStatus::SetData(int id, bool is_item) {

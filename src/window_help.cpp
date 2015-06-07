@@ -36,6 +36,7 @@ void Window_Help::SetText(std::string text,	Text::Alignment align) {
 		this->text = text;
 		this->align = align;
 
-		Text::Draw(*contents, 0, 2, Text::ColorDefault, text, align);
+		Text::Draw(*contents, Rect(0, 2, contents->GetWidth(), contents->GetHeight() - 2),
+			   Text::ColorDefault, text, align);
 	}
 }

@@ -82,7 +82,7 @@ void Window_Skill::DrawItem(int index) {
 		std::stringstream ss;
 		ss << costs;
 		Text::Draw(*contents, rect.x + rect.width - 28, rect.y, color, "-");
-		Text::Draw(*contents, rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, Rect(0, rect.y, rect.x + rect.width - 6, 12), color, ss.str(), Text::AlignRight);
 
 		DrawSkillName(&Data::skills[skill_id - 1], rect.x, rect.y, enabled);
 	}

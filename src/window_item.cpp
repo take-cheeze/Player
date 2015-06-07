@@ -94,7 +94,7 @@ void Window_Item::DrawItem(int index) {
 		ss << number;
 		Text::SystemColor color = enabled ? Text::ColorDefault : Text::ColorDisabled;
 		Text::Draw(*contents, rect.x + rect.width - 28, rect.y, color, "x");
-		Text::Draw(*contents, rect.x + rect.width - 6, rect.y, color, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, Rect(0, rect.y, rect.x + rect.width - 6, 12), color, ss.str(), Text::AlignRight);
 	}
 }
 

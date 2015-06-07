@@ -123,7 +123,7 @@ void Window_EquipStatus::DrawParameter(int cx, int cy, int type) {
 	cx += 60;
 	std::stringstream ss;
 	ss << value;
-	Text::Draw(*contents, cx + 18, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 18, 12), Text::ColorDefault, ss.str(), Text::AlignRight);
 
 	if (draw_params) {
 		// Draw New Value
@@ -131,6 +131,6 @@ void Window_EquipStatus::DrawParameter(int cx, int cy, int type) {
 		ss.str("");
 		ss << new_value;
 		int color = GetNewParameterColor(value, new_value);
-		Text::Draw(*contents, cx + 18, cy, color, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, Rect(0, cy, cx + 18, 12), color, ss.str(), Text::AlignRight);
 	}
 }

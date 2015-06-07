@@ -43,11 +43,11 @@ void Window_ShopStatus::Refresh() {
 		std::stringstream ss;
 		ss << number;
 
-		Text::Draw(*contents, 120, 2, Text::ColorDefault, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, Rect(0, 2, 120, 12), Text::ColorDefault, ss.str(), Text::AlignRight);
 
 		ss.str("");
 		ss << Main_Data::game_party->GetItemCount(item_id, true);
-		Text::Draw(*contents, 120, 18, Text::ColorDefault, ss.str(), Text::AlignRight);
+		Text::Draw(*contents, Rect(0, 18, 120, 12), Text::ColorDefault, ss.str(), Text::AlignRight);
 	}
 }
 

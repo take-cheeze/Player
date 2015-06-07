@@ -17,8 +17,8 @@
 
 // Headers
 #include <boost/bind.hpp>
-#include <iomanip>
-#include <sstream>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 #include "window_base.h"
 #include "async_handler.h"
 #include "cache.h"
@@ -27,6 +27,8 @@
 #include "bitmap.h"
 #include "text.h"
 #include "font.h"
+
+using boost::lexical_cast;
 
 Window_Base::Window_Base(int x, int y, int width, int height) {
 	windowskin_name = Game_System::GetSystemName();
@@ -99,9 +101,8 @@ void Window_Base::DrawActorLevel(Game_Actor* actor, int cx, int cy) {
 	Text::Draw(*contents, cx, cy, 1, Data::terms.lvl_short);
 
 	// Draw Level of the Actor
-	std::stringstream ss;
-	ss << actor->GetLevel();
-	Text::Draw(*contents, cx + 24, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 24, 12), Text::ColorDefault,
+		   lexical_cast<std::string>(actor->GetLevel()), Text::AlignRight);
 }
 
 void Window_Base::DrawActorState(Game_Battler* actor, int cx, int cy) {
@@ -122,15 +123,8 @@ void Window_Base::DrawActorExp(Game_Actor* actor, int cx, int cy) {
 
 	// Current Exp of the Actor
 	// ------/------
-	std::stringstream ss;
-	ss << std::setfill(' ') << std::setw(6) << actor->GetExpString();
-
-	// Delimiter
-	ss << '/';
-
-	// Exp for Level up
-	ss << std::setfill(' ') << std::setw(6) << actor->GetNextExpString();
-	Text::Draw(*contents, cx + 12, cy, Text::ColorDefault, ss.str(), Text::AlignLeft);
+	Text::Draw(*contents, cx + 12, cy, Text::ColorDefault,
+		   str(boost::format("%6s/%6s") % actor->GetExpString() % actor->GetNextExpString()));
 }
 
 void Window_Base::DrawActorHp(Game_Battler* actor, int cx, int cy, bool draw_max) {
@@ -146,9 +140,8 @@ void Window_Base::DrawActorHp(Game_Battler* actor, int cx, int cy, bool draw_max
 	} else if (actor->GetHp() <= actor->GetMaxHp() / 4) {
 		color = Text::ColorCritical;
 	}
-	std::stringstream ss;
-	ss << actor->GetHp();
-	Text::Draw(*contents, cx + 18, cy, color, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 18, 12), color,
+		   lexical_cast<std::string>(actor->GetHp()), Text::AlignRight);
 
 	if (!draw_max)
 		return;
@@ -159,9 +152,8 @@ void Window_Base::DrawActorHp(Game_Battler* actor, int cx, int cy, bool draw_max
 
 	// Draw Max Hp
 	cx += 6;
-	ss.str("");
-	ss << actor->GetMaxHp();
-	Text::Draw(*contents, cx + 18, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 18, 12), Text::ColorDefault,
+		   lexical_cast<std::string>(actor->GetMaxSp()), Text::AlignRight);
 }
 
 void Window_Base::DrawActorSp(Game_Battler* actor, int cx, int cy, bool draw_max) {
@@ -175,9 +167,8 @@ void Window_Base::DrawActorSp(Game_Battler* actor, int cx, int cy, bool draw_max
 	if (actor->GetMaxSp() != 0 && actor->GetSp() <= actor->GetMaxSp() / 4) {
 		color = Text::ColorCritical;
 	}
-	std::stringstream ss;
-	ss << actor->GetSp();
-	Text::Draw(*contents, cx + 18, cy, color, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 18, 12), color,
+		   lexical_cast<std::string>(actor->GetSp()), Text::AlignRight);
 
 	if (!draw_max)
 		return;
@@ -188,9 +179,8 @@ void Window_Base::DrawActorSp(Game_Battler* actor, int cx, int cy, bool draw_max
 
 	// Draw Max Sp
 	cx += 6;
-	ss.str("");
-	ss << actor->GetMaxSp();
-	Text::Draw(*contents, cx + 18, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 18, 12), Text::ColorDefault,
+		   lexical_cast<std::string>(actor->GetMaxSp()), Text::AlignRight);
 }
 
 void Window_Base::DrawActorParameter(Game_Battler* actor, int cx, int cy, int type) {
@@ -222,9 +212,8 @@ void Window_Base::DrawActorParameter(Game_Battler* actor, int cx, int cy, int ty
 	Text::Draw(*contents, cx, cy, 1, name);
 
 	// Draw Value
-	std::stringstream ss;
-	ss << value;
-	Text::Draw(*contents, cx + 78, cy, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx + 78, 12), Text::ColorDefault,
+		   lexical_cast<std::string>(value), Text::AlignRight);
 }
 
 void Window_Base::DrawEquipmentType(Game_Actor* actor, int cx, int cy, int type) {
@@ -270,13 +259,12 @@ void Window_Base::DrawSkillName(RPG::Skill* skill, int cx, int cy, bool enabled)
 void Window_Base::DrawCurrencyValue(int money, int cx, int cy) {
 	// This function draws right aligned because of the dynamic with of the
 	// gold output (cx and cy define the right border)
-	std::stringstream gold;
-	gold << money;
-
 	Rect gold_text_size = contents->GetFont()->GetSize(Data::terms.gold);
-	Text::Draw(*contents, cx, cy, 1, Data::terms.gold, Text::AlignRight);
 
-	Text::Draw(*contents, cx - gold_text_size.width, cy, Text::ColorDefault, gold.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, cy, cx, 12), 1, Data::terms.gold, Text::AlignRight);
+
+	Text::Draw(*contents, Rect(0, cy, cx - gold_text_size.width, 12),
+		   Text::ColorDefault, lexical_cast<std::string>(money), Text::AlignRight);
 }
 
 void Window_Base::DrawGauge(Game_Battler* actor, int cx, int cy) {

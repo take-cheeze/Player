@@ -43,15 +43,16 @@ void Window_ActorInfo::DrawInfo() {
 
 	// Draw Row formation.
 	std::string battle_row = Game_Actors::GetActor(actor_id)->GetBattleRow() == 1 ? "Back" : "Front";
-	Text::Draw(*contents, contents->GetWidth(), 5, Text::ColorDefault, battle_row, Text::AlignRight);
+	Text::Draw(*contents, Rect(0, 5, contents->GetWidth(), 12),
+		   Text::ColorDefault, battle_row, Text::AlignRight);
 
 	// Draw Face
 	DrawActorFace(Game_Actors::GetActor(actor_id), 0, 0);
-	
+
 	// Draw Name
 	Text::Draw(*contents, 3, 50, 1, "Name");
 	DrawActorName(Game_Actors::GetActor(actor_id), 36, 65);
-	
+
 	// Draw Profession
 	Text::Draw(*contents, 3, 80, 1, "Profession");
 	DrawActorClass(Game_Actors::GetActor(actor_id), 36, 95);
@@ -68,6 +69,6 @@ void Window_ActorInfo::DrawInfo() {
 	Text::Draw(*contents, 3, 170, 1, Data::terms.lvl_short);
 	std::stringstream ss;
 	ss << Game_Actors::GetActor(actor_id)->GetLevel();
-	Text::Draw(*contents, 79, 170, Text::ColorDefault, ss.str(), Text::AlignRight);
+	Text::Draw(*contents, Rect(0, 170, 79, 12), Text::ColorDefault, ss.str(), Text::AlignRight);
 
 }

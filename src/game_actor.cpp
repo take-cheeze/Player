@@ -309,9 +309,13 @@ void Game_Actor::MakeExpList() {
 }
 
 std::string Game_Actor::GetExpString() const {
+	if (GetNextExp() == -1) {
+		return "------";
+	} else {
 		std::stringstream ss;
-	ss << GetExp();
+		ss << GetExp();
 		return ss.str();
+	}
 }
 
 std::string Game_Actor::GetNextExpString() const {

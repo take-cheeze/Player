@@ -31,8 +31,8 @@
 #include <boost/next_prior.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
 
-void Text::Draw(Bitmap& dest, int x, int y, int color, std::string const& text, Text::Alignment align) {
-	Draw(dest, Rect(x, y, dest.GetWidth() - x, dest.GetHeight() - y), color, text, align);
+void Text::Draw(Bitmap& dest, int x, int y, int color, std::string const& text) {
+	Draw(dest, Rect(x, y, dest.GetWidth() - x, dest.GetHeight() - y), color, text);
 }
 
 void Text::Draw(Bitmap& dest, Rect const& dst_rect_, int color, std::string const& text, Text::Alignment align) {
