@@ -1478,7 +1478,7 @@ void Window::Draw() {
 			tiled_render_texture(Rect(dst_x, dst_y + 8, 8, ch - 16), windowskin,
 					     Rect(base_src_x, 8, 8, 16), eff);
 			// Border Right
-			tiled_render_texture(Rect(cw - 8, 8, 8, ch - 16), windowskin,
+			tiled_render_texture(Rect(dst_x + cw - 8, dst_y + 8, 8, ch - 16), windowskin,
 					     Rect(base_src_x + 32 - 8, 8, 8, 16), eff);
 
 			// Upper left corner
