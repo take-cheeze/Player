@@ -248,7 +248,7 @@ struct Program {
 		released_.clear();
 	}
 
-	void validate() {
+	bool validate() {
 		glValidateProgram(get_handle());
 		GLint validate_stat;
 		glGetProgramiv(program_.get(), GL_VALIDATE_STATUS, &validate_stat);
@@ -258,8 +258,9 @@ struct Program {
 			std::vector<GLchar> info(info_len + 1);
 			GLsizei info_result_len;
 			glGetProgramInfoLog(program_.get(), info.size(), &info_result_len, &info.front());
-			Output::Error("Program validate error: %s", &info.front());
+			Output::Debug("Program validate error: %s", &info.front());
 		}
+		return validate_stat != GL_FALSE;
 	}
 
     private:
@@ -373,6 +374,8 @@ Texture2D screen_texture;
 Rect const screen_target_rect(0, 0, SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT);
 glm::mat4 const screen_target_proj_mat = glm::ortho<float>(0, SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT, 0);
 Buffer<GLfloat> screen_fbo_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+
+// Shaders
 EASYRPG_SHARED_PTR<Program> screen_fbo_program = EASYRPG_MAKE_SHARED<Program>(
     EASYRPG_MAKE_SHARED<Shader>(GL_VERTEX_SHADER,
 #include "./shader/screen.vert.inc"
@@ -380,6 +383,34 @@ EASYRPG_SHARED_PTR<Program> screen_fbo_program = EASYRPG_MAKE_SHARED<Program>(
     EASYRPG_MAKE_SHARED<Shader>(GL_FRAGMENT_SHADER,
 #include "./shader/screen.frag.inc"
 				));
+
+EASYRPG_SHARED_PTR<Program> tiled_program = EASYRPG_MAKE_SHARED<Program>(
+    EASYRPG_MAKE_SHARED<Shader>(
+	GL_VERTEX_SHADER,
+#include "./shader/tiled.vert.inc"
+				),
+    EASYRPG_MAKE_SHARED<Shader>(
+	GL_FRAGMENT_SHADER,
+#include "./shader/tiled.frag.inc"
+				));
+
+EASYRPG_SHARED_PTR<Program> fill_effect_program = EASYRPG_MAKE_SHARED<Program>(
+    EASYRPG_MAKE_SHARED<Shader>(
+	GL_VERTEX_SHADER,
+#include "./shader/fill_effect.vert.inc"
+				),
+    EASYRPG_MAKE_SHARED<Shader>(
+	GL_FRAGMENT_SHADER,
+#include "./shader/fill_effect.frag.inc"
+				));
+
+EASYRPG_SHARED_PTR<Program> sprite_program = EASYRPG_MAKE_SHARED<Program>(
+     EASYRPG_MAKE_SHARED<Shader>(GL_VERTEX_SHADER,
+#include "./shader/default.vert.inc"
+				 ),
+     EASYRPG_MAKE_SHARED<Shader>(GL_FRAGMENT_SHADER,
+#include "./shader/default.frag.inc"
+				 ));
 
 GLuint get_render_fbo() {
 	if (not render_fbo) {
@@ -435,6 +466,8 @@ Texture2D& get_texture(BitmapRef const& bmp) {
 }
 
 void prepare_rendering() {
+	DisplayUi->MakeGLContextCurrent();
+
 	static bool print_info = false;
 	if (not print_info) {
 		print_info = true;
@@ -445,7 +478,27 @@ void prepare_rendering() {
 		// Output::Debug("OpenGL Extensions: %s", glGetString(GL_EXTENSIONS));
 	}
 
-	DisplayUi->MakeGLContextCurrent();
+	static bool set_fixed_uniforms = false;
+	if (not set_fixed_uniforms) {
+		set_fixed_uniforms = true;
+
+		fill_effect_program->use();
+		glUniformMatrix4fv(fill_effect_program->uniform_location("u_proj_mat"),
+				   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
+
+		tiled_program->use();
+		glUniformMatrix4fv(tiled_program->uniform_location("u_proj_mat"),
+				   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
+		glUniform1i(tiled_program->uniform_location("u_texture"), 0);
+
+		sprite_program->use();
+		glUniformMatrix4fv(sprite_program->uniform_location("u_proj_mat"),
+				   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
+		glUniform1i(sprite_program->uniform_location("u_texture"), 0);
+
+		screen_fbo_program->use();
+		glUniform1i(screen_fbo_program->uniform_location("u_texture"), 0);
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, get_render_fbo());
 	assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
@@ -537,16 +590,9 @@ void render_texture(
     optional<RenderEffects const&> eff_ = boost::none)
 {
 	RenderEffects const& eff = eff_? eff_.get() : default_effect;
+	Program& prog = *sprite_program;
 
-	static EASYRPG_SHARED_PTR<Program> program = EASYRPG_MAKE_SHARED<Program>(
-	    EASYRPG_MAKE_SHARED<Shader>(GL_VERTEX_SHADER,
-#include "./shader/default.vert.inc"
-					),
-	    EASYRPG_MAKE_SHARED<Shader>(GL_FRAGMENT_SHADER,
-#include "./shader/default.frag.inc"
-					));
-
-	program->use();
+	prog.use();
 
 	Texture2D& tex = get_texture(bmp);
 	tex.bind();
@@ -554,20 +600,17 @@ void render_texture(
 	glm::mat4 model_mat = eff.model_matrix();
         model_mat = glm::translate(model_mat, glm::vec3(dst_rect.x, dst_rect.y, 0));
 
-	glUniform1i(program->uniform_location("u_texture"), 0);
-	glUniform1f(program->uniform_location("u_opacity"), eff.opacity / 255.f);
-	glUniform1f(program->uniform_location("u_bush_opacity"), eff.bush_opacity / 255.f);
-	glUniform1f(program->uniform_location("u_bush_depth"),
+	glUniform1f(prog.uniform_location("u_opacity"), eff.opacity / 255.f);
+	glUniform1f(prog.uniform_location("u_bush_opacity"), eff.bush_opacity / 255.f);
+	glUniform1f(prog.uniform_location("u_bush_depth"),
 		    GLfloat(src_rect.y + src_rect.height - eff.bush_depth) / tex.height());
-	glUniform4f(program->uniform_location("u_color"),
+	glUniform4f(prog.uniform_location("u_color"),
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
-	glUniform4f(program->uniform_location("u_tone"),
+	glUniform4f(prog.uniform_location("u_tone"),
 		    eff.tone.red / 255.f, eff.tone.green / 255.f, eff.tone.blue / 255.f, eff.tone.gray / 255.f);
-	glUniformMatrix4fv(program->uniform_location("u_proj_mat"),
-			   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
-	glUniformMatrix4fv(program->uniform_location("u_tex_mat"),
+	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"),
 			   1, GL_FALSE, glm::value_ptr(tex_mat));
-	glUniformMatrix4fv(program->uniform_location("u_model_mat"),
+	glUniformMatrix4fv(prog.uniform_location("u_model_mat"),
 			   1, GL_FALSE, glm::value_ptr(model_mat));
 
 	if (eff.waver_depth == 0) {
@@ -599,27 +642,9 @@ void render_texture(
 			swap(src_coord[2 * 1 + 1], src_coord[2 * 2 + 1]);
 		}
 
-		/*
-		std::cout << "projection matrix: " << glm::to_string(screen_target_proj_mat) << std::endl;
-		std::cout << "model matrix: " << glm::to_string(model_mat) << std::endl;
-		std::cout << "screen coordinates:" << std::endl;
-		for (int i = 0; i < 4; ++i) {
-			std::cout << glm::to_string(screen_target_proj_mat * model_mat *
-						    glm::vec4(dst_coord[2 * i + 0], dst_coord[2 * i + 1], 0.f, 1.f))
-				  << std::endl;
-		}
-		std::cout << "texture matrix: " << glm::to_string(tex_mat) << std::endl;
-		std::cout << "texture coordinates: " << std::endl;
-		for (int i = 0; i < 4; ++i) {
-			std::cout << glm::to_string(tex_mat *
-						    glm::vec4(src_coord[2 * i + 0], src_coord[2 * i + 1], 0.f, 1.f))
-				  << std::endl;
-		}
-		*/
-
-		glVertexAttribPointer(program->attrib_location("a_position"), 2,
+		glVertexAttribPointer(prog.attrib_location("a_position"), 2,
 				      GL_SHORT, GL_FALSE, 0, dst_coord.data());
-		glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
+		glVertexAttribPointer(prog.attrib_location("a_tex_coord"), 2,
 				      GL_SHORT, GL_FALSE, 0, src_coord.data());
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -640,14 +665,14 @@ void render_texture(
 			src_coords[2 * (i + src_rect.height + 1) + 1] = src_rect.y + i;
 		}
 
-		glVertexAttribPointer(program->attrib_location("a_position"), 2,
+		glVertexAttribPointer(prog.attrib_location("a_position"), 2,
 				      GL_SHORT, GL_FALSE, 0, &dst_coords.front());
-		glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
+		glVertexAttribPointer(prog.attrib_location("a_tex_coord"), 2,
 				      GL_SHORT, GL_FALSE, 0, &src_coords.front());
 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, src_rect.height + 1);
 	}
-	program->validate();
+	assert(prog.validate());
 }
 
 void render_texture(
@@ -660,18 +685,9 @@ void tiled_render_texture(
     optional<RenderEffects const&> eff_ = boost::none)
 {
 	RenderEffects const& eff = eff_? eff_.get() : default_effect;
+	Program& prog = *tiled_program;
 
-	static EASYRPG_SHARED_PTR<Program> program = EASYRPG_MAKE_SHARED<Program>(
-	    EASYRPG_MAKE_SHARED<Shader>(
-		GL_VERTEX_SHADER,
-#include "./shader/tiled.vert.inc"
-					),
-	    EASYRPG_MAKE_SHARED<Shader>(
-		GL_FRAGMENT_SHADER,
-#include "./shader/tiled.frag.inc"
-					));
-
-	program->use();
+	prog.use();
 
 	Texture2D& tex = get_texture(bmp);
 	tex.bind();
@@ -680,23 +696,18 @@ void tiled_render_texture(
         model_mat = glm::translate(model_mat, glm::vec3(dst_rect.x, dst_rect.y, 0.f));
 	model_mat = glm::translate(model_mat, glm::vec3(eff.ox, eff.oy, 0.f));
 
-	glUniform1i(program->uniform_location("u_texture"), 0);
-	glUniform2fv(program->uniform_location("u_tex_base_coord"), 1,
+	glUniform2fv(prog.uniform_location("u_tex_base_coord"), 1,
 		     glm::value_ptr(glm::vec2(src_rect.x, src_rect.y) / glm::vec2(tex.width(), tex.height())));
-	glUniform2f(program->uniform_location("u_tex_range"),
+	glUniform2f(prog.uniform_location("u_tex_range"),
 		    GLfloat(src_rect.width) / tex.width(),
 		    GLfloat(src_rect.height) / tex.height());
-	glUniform1f(program->uniform_location("u_opacity"), eff.opacity / 255.f);
-	glUniform4f(program->uniform_location("u_color"),
+	glUniform1f(prog.uniform_location("u_opacity"), eff.opacity / 255.f);
+	glUniform4f(prog.uniform_location("u_color"),
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
-	glUniform4f(program->uniform_location("u_tone"),
+	glUniform4f(prog.uniform_location("u_tone"),
 		    eff.tone.red / 255.f, eff.tone.green / 255.f, eff.tone.blue / 255.f, eff.tone.gray / 255.f);
-	glUniformMatrix4fv(program->uniform_location("u_proj_mat"),
-			   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
-	glUniformMatrix4fv(program->uniform_location("u_tex_mat"),
-			   1, GL_FALSE, glm::value_ptr(tex_mat));
-	glUniformMatrix4fv(program->uniform_location("u_model_mat"),
-			   1, GL_FALSE, glm::value_ptr(model_mat));
+	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex_mat));
+	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(model_mat));
 
 	EASYRPG_ARRAY<GLshort, 2 * 4> dst_coord, src_coord;
 	// set base coord
@@ -716,57 +727,28 @@ void tiled_render_texture(
 	src_coord[2 * 2 + 1] += dst_rect.height;
 	src_coord[2 * 3 + 1] += dst_rect.height;
 
-	/*
-	std::cout << "projection matrix: " << glm::to_string(screen_target_proj_mat) << std::endl;
-	std::cout << "model matrix: " << glm::to_string(model_mat) << std::endl;
-	std::cout << "screen coordinates:" << std::endl;
-	for (int i = 0; i < 4; ++i) {
-		std::cout << glm::to_string(screen_target_proj_mat * model_mat *
-					    glm::vec4(dst_coord[2 * i + 0], dst_coord[2 * i + 1], 0.f, 1.f))
-			  << std::endl;
-	}
-	std::cout << "texture matrix: " << glm::to_string(tex_mat) << std::endl;
-	std::cout << "texture coordinates: " << std::endl;
-	for (int i = 0; i < 4; ++i) {
-		std::cout << glm::to_string(tex_mat *
-					    glm::vec4(src_coord[2 * i + 0], src_coord[2 * i + 1], 0.f, 1.f))
-			  << std::endl;
-	}
-	*/
-
-	glVertexAttribPointer(program->attrib_location("a_position"), 2,
+	glVertexAttribPointer(prog.attrib_location("a_position"), 2,
 			      GL_SHORT, GL_FALSE, 0, dst_coord.data());
-	glVertexAttribPointer(program->attrib_location("a_tex_coord"), 2,
+	glVertexAttribPointer(prog.attrib_location("a_tex_coord"), 2,
 			      GL_SHORT, GL_FALSE, 0, src_coord.data());
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	program->validate();
+	assert(prog.validate());
 }
 
 void fill_effect(Rect const& rect, RenderEffects const& eff) {
-	static EASYRPG_SHARED_PTR<Program> program = EASYRPG_MAKE_SHARED<Program>(
-	    EASYRPG_MAKE_SHARED<Shader>(
-		GL_VERTEX_SHADER,
-#include "./shader/fill_effect.vert.inc"
-),
-	    EASYRPG_MAKE_SHARED<Shader>(
-		GL_FRAGMENT_SHADER,
-#include "./shader/fill_effect.frag.inc"
-));
-
 	glm::mat4 model_mat;
 	model_mat = glm::translate(model_mat, glm::vec3(rect.x, rect.y, 0.f));
 
-	program->use();
+	Program& prog = *fill_effect_program;
 
-	glUniform1f(program->uniform_location("u_opacity"), eff.opacity / 255.f);
-	glUniform4f(program->uniform_location("u_color"),
+	prog.use();
+
+	glUniform1f(prog.uniform_location("u_opacity"), eff.opacity / 255.f);
+	glUniform4f(prog.uniform_location("u_color"),
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
-	glUniformMatrix4fv(program->uniform_location("u_proj_mat"),
-			   1, GL_FALSE, glm::value_ptr(screen_target_proj_mat));
-	glUniformMatrix4fv(program->uniform_location("u_model_mat"),
-			   1, GL_FALSE, glm::value_ptr(model_mat));
+	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(model_mat));
 
 
 	EASYRPG_ARRAY<GLshort, 2 * 4> coord;
@@ -785,12 +767,12 @@ void fill_effect(Rect const& rect, RenderEffects const& eff) {
 		coord[2 * i + 1] = rect.height - coord[2 * i + 1];
 	}
 
-	glVertexAttribPointer(program->attrib_location("a_position"), 2,
+	glVertexAttribPointer(prog.attrib_location("a_position"), 2,
 			      GL_SHORT, GL_FALSE, 0, coord.data());
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	program->validate();
+	assert(prog.validate());
 }
 
 }
@@ -869,13 +851,12 @@ void Graphics::UpdateTitle() {
 }
 
 void Graphics::DrawFrame() {
-	std::vector<Drawable*>::iterator i;
-
 	prepare_rendering();
 
 	if (IsTransitionPending()) {
 		UpdateTransition();
 
+		std::vector<Drawable*>::iterator i;
 		for (i = global_state->drawable_list.begin(); i != global_state->drawable_list.end(); ++i) {
 			if ((*i)->GetVisible()) (*i)->Draw();
 		}
@@ -902,11 +883,10 @@ void Graphics::DrawFrame() {
 
 	screen_fbo_program->use();
 	screen_texture.bind();
-	glUniform1i(screen_fbo_program->uniform_location("u_texture"), 0);
 	screen_fbo_buffer.bind();
 	glVertexAttribPointer(screen_fbo_program->attrib_location("a_position"), 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	screen_fbo_program->validate();
+	assert(screen_fbo_program->validate());
 
 	DisplayUi->UpdateDisplay();
 
@@ -1193,12 +1173,12 @@ void Background::Draw() {
 
 	if (bg_bitmap) {
 		eff.ox = -Scale(bg_x); eff.oy = -Scale(bg_y);
-		tiled_render_texture(Graphics::screen_target_rect, bg_bitmap, bg_bitmap->GetRect());
+		tiled_render_texture(Graphics::screen_target_rect, bg_bitmap, bg_bitmap->GetRect(), eff);
 	}
 
 	if (fg_bitmap) {
 		eff.ox = -Scale(fg_x); eff.oy = -Scale(fg_y);
-		tiled_render_texture(Graphics::screen_target_rect, fg_bitmap, fg_bitmap->GetRect());
+		tiled_render_texture(Graphics::screen_target_rect, fg_bitmap, fg_bitmap->GetRect(), eff);
 	}
 }
 
