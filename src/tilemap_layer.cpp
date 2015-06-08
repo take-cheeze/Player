@@ -249,6 +249,7 @@ void TilemapLayer::Draw(int z_order) {
 					// Check that block F is being drawn
 					if (tile.ID >= BLOCK_F && tile.ID < BLOCK_F + BLOCK_F_TILES) {
 						int id = substitutions[tile.ID - BLOCK_F];
+						if (id == 0) { continue; }
 						int row, col;
 
 						// Get the tile coordinates from chipset
