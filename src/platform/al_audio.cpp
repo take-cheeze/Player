@@ -130,6 +130,7 @@ namespace {
 	(void) c_##__LINE__;
 
 	enum { BUFFER_NUMBER = 3 };
+
 	double const SECOND_PER_BUFFER = 0.5;
 }
 
@@ -148,7 +149,7 @@ struct ALAudio::source {
 	source(EASYRPG_SHARED_PTR<ALCcontext> const &c, ALuint const s, bool loop)
 	    : ctx_(c)
 	    , src_(s)
-	    , fade_count_(0)
+	    , loop_count_(0)
 	    , fade_milli_(0)
 	    , volume_(1.0f)
 	    , is_fade_in_(false)
@@ -202,7 +203,7 @@ struct ALAudio::source {
 private:
 	EASYRPG_SHARED_PTR<ALCcontext> ctx_;
 	ALuint src_;
-	unsigned fade_count_, fade_milli_;
+	unsigned loop_count_, fade_milli_;
 	ALfloat volume_;
 	bool is_fade_in_;
 	bool loop_play_;
@@ -211,7 +212,7 @@ private:
 	boost::circular_buffer<unsigned> ticks_, buf_sizes_;
 
 	unsigned progress_milli() const {
-		return (1000 * fade_count_ / 60);
+		return (1000 * loop_count_ / 60);
 	}
 	bool fade_ended() const {
 		return (fade_milli_ < progress_milli());
@@ -232,56 +233,47 @@ public:
 	}
 
 	void fade_out(unsigned const ms) {
-		fade_count_ = 0;
+		loop_count_ = 0;
 		fade_milli_ = ms;
 		is_fade_in_ = false;
 	}
 
 	void fade_in(unsigned const ms) {
-		fade_count_ = 0;
+		loop_count_ = 0;
 		fade_milli_ = ms;
 		is_fade_in_ = true;
 	}
 
-	void queue() {
-		SET_CONTEXT(ctx_);
-
+	void update() {
 		ALint processed;
 		alGetSourceiv(src_, AL_BUFFERS_PROCESSED, &processed);
 		std::vector<ALuint> unqueued(processed);
-		alSourceUnqueueBuffers(src_, unqueued.size(), &unqueued.front());
-
-		ALint state;
-		alGetSourcei(src_, AL_SOURCE_STATE, &state);
-		if (state == AL_STOPPED) { // start queuing
-			unqueued.assign(buffers_.begin(), buffers_.end());
-			ticks_.clear();
-			ticks_.push_back(0);
-			buf_sizes_.clear();
-		}
-
-		for (int i = 0; i < BUFFER_NUMBER; ++i) {
-			buf_sizes_.push_back(loader_->load_buffer(unqueued[i]));
-			ticks_.push_back(loader_->midi_ticks());
-
-			// clear loader on non loop play end
-			// continue on if loop play
+		alSourceUnqueueBuffers(src_, processed, &unqueued.front());
+		int queuing_count = 0;
+		for (; queuing_count < processed; ++queuing_count) {
 			if (not loop_play_ and loader_->is_end()) {
 				loader_.reset();
-				unqueued.resize(i + 1);
+				++queuing_count;
 				break;
 			}
-		}
-		alSourceQueueBuffers(src_, unqueued.size(), &unqueued.front());
-	}
 
-	void update() {
-		queue();
+			if (loader_->is_end()) {
+				ticks_.push_back(0);
+			}
+			buf_sizes_.push_back(loader_->load_buffer(unqueued[queuing_count]));
+			ticks_.push_back(loader_->midi_ticks());
+		}
+		alSourceQueueBuffers(src_, queuing_count, &unqueued.front());
 
 		if (fade_milli_ != 0) {
 			SET_CONTEXT(ctx_);
-			fade_count_++;
-			fade_ended()? alSourceStop(src_) : alSourcef(src_, AL_GAIN, current_volume());
+			loop_count_++;
+
+			if (fade_ended()) {
+				alSourceStop(src_);
+			} else {
+				alSourcef(src_, AL_GAIN, current_volume());
+			}
 		}
 	}
 
@@ -295,9 +287,25 @@ public:
 			return;
 		}
 
+		ALint unqueuing_count;
+		alGetSourceiv(src_, AL_BUFFERS_QUEUED, &unqueuing_count);
+		std::vector<ALuint> unqueued(unqueuing_count);
+		alSourceUnqueueBuffers(src_, unqueuing_count, &unqueued.front());
+
 		loader_ = l;
+		int queuing_count = 0;
 		BOOST_ASSERT(not l->is_end());
-		queue();
+		ticks_.push_back(0);
+		for (; queuing_count < BUFFER_NUMBER; ++queuing_count) {
+			buf_sizes_.push_back(loader_->load_buffer(buffers_[queuing_count]));
+			ticks_.push_back(loader_->midi_ticks());
+
+			if (loader_->is_end()) {
+				queuing_count++;
+				break;
+			}
+		}
+		alSourceQueueBuffers(src_, queuing_count, buffers_.data());
 		alSourcePlay(src_);
 	}
 
@@ -442,13 +450,14 @@ void ALAudio::Update() {
 	bgs_src_->update();
 	me_src_->update();
 
-	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ) {
+	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ++i) {
 		i->get()->update();
 
 		ALenum state = AL_INVALID_VALUE;
 		alGetSourcei(i->get()->get(), AL_SOURCE_STATE, &state);
-		if (state == AL_STOPPED) { i = se_src_.erase(i); }
-		else { ++i; }
+		if (state == AL_STOPPED) {
+			i = se_src_.erase(i);
+		}
 	}
 }
 
@@ -460,15 +469,6 @@ ALAudio::ALAudio(char const *const dev_name) {
 	BOOST_ASSERT(ctx_);
 
 	alcMakeContextCurrent(ctx_.get());
-
-	Output::Debug("ALC Device Specifier: %s", alcGetString(dev_.get(), ALC_DEVICE_SPECIFIER));
-	Output::Debug("ALC Extensions: %s", alcGetString(dev_.get(), ALC_EXTENSIONS));
-	Output::Debug("ALC Capture Device Specifier: %s", alcGetString(dev_.get(), ALC_CAPTURE_DEVICE_SPECIFIER));
-
-	Output::Debug("OpenAL Vendor: %s", alGetString(AL_VENDOR));
-	Output::Debug("OpenAL Renderer: %s", alGetString(AL_RENDERER));
-	Output::Debug("OpenAL Version: %s", alGetString(AL_VERSION));
-	Output::Debug("OpenAL Extensions: %s", alGetString(AL_EXTENSIONS));
 
 	SET_CONTEXT(ctx_);
 
