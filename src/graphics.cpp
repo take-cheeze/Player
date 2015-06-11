@@ -777,6 +777,9 @@ void fill_effect(Rect const& rect, RenderEffects const& eff) {
 
 }
 
+unsigned Graphics::GetWidth() { return screen_target_rect.width; }
+unsigned Graphics::GetHeight() { return screen_target_rect.height; }
+
 using Graphics::render_texture;
 using Graphics::tiled_render_texture;
 using Graphics::fill_effect;

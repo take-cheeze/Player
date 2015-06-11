@@ -142,6 +142,9 @@ namespace Graphics {
 	 * @return target frame rate
 	 */
 	int GetDefaultFps();
+
+	unsigned GetWidth();
+	unsigned GetHeight();
 }
 
 #endif
