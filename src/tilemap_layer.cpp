@@ -191,11 +191,9 @@ void TilemapLayer::Draw(int z_order) {
 
 			int map_draw_z = tile.z;
 
-			if (map_draw_z > 0) {
-				if (map_draw_z < 9999) {
-					map_draw_z += y * TILE_SIZE;
-					if (y == 0) map_draw_z += TILE_SIZE;
-				}
+			if (map_draw_z > 0 and map_draw_z < 9999) {
+				map_draw_z += y * TILE_SIZE;
+				if (y == 0) map_draw_z += TILE_SIZE;
 			}
 
 			// Draw the tile if its z is being draw now
