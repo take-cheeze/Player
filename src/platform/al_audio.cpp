@@ -43,28 +43,17 @@ namespace {
 		char const *err = NULL;
 		ALenum const err_code = alGetError();
 		switch (err_code) {
-		case AL_INVALID_NAME:
-			err = "invalid name";
-			break;
-		case AL_INVALID_ENUM:
-			err = "invalid enum";
-			break;
-		case AL_INVALID_VALUE:
-			err = "invalid value";
-			break;
-		case AL_INVALID_OPERATION:
-			err = "invalid operation";
-			break;
-		case AL_OUT_OF_MEMORY:
-			err = "out of memory";
-			break;
+		case AL_INVALID_NAME: err = "invalid name"; break;
+		case AL_INVALID_ENUM: err = "invalid enum"; break;
+		case AL_INVALID_VALUE: err = "invalid value"; break;
+		case AL_INVALID_OPERATION: err = "invalid operation"; break;
+		case AL_OUT_OF_MEMORY: err = "out of memory"; break;
 		default:
 			err = "unkown error";
 			Output::Debug("unkown error code %x", err_code);
 			break;
 
-		case AL_NO_ERROR:
-			return true;
+		case AL_NO_ERROR: return true;
 		}
 
 		Output::Debug("AL error: %s", err);
@@ -75,25 +64,16 @@ namespace {
 		char const *err = NULL;
 		ALenum const err_code = alcGetError(dev);
 		switch (err_code) {
-		case ALC_INVALID_DEVICE:
-			err = "invalid device";
-			break;
-		case ALC_INVALID_ENUM:
-			err = "invalid enum";
-			break;
-		case ALC_INVALID_CONTEXT:
-			err = "invalid context";
-			break;
-		case ALC_OUT_OF_MEMORY:
-			err = "out of memory";
-			break;
+		case ALC_INVALID_DEVICE: err = "invalid device"; break;
+		case ALC_INVALID_ENUM: err = "invalid enum"; break;
+		case ALC_INVALID_CONTEXT: err = "invalid context"; break;
+		case ALC_OUT_OF_MEMORY: err = "out of memory"; break;
 		default:
 			err = "unkown error";
 			Output::Debug("unkown error code %x", err_code);
 			break;
 
-		case ALC_NO_ERROR:
-			return true;
+		case ALC_NO_ERROR: return true;
 		}
 
 		Output::Debug("ALC error: %s", err);
@@ -146,9 +126,8 @@ struct ALAudio::buffer_loader {
 };
 
 struct ALAudio::source {
-	source(EASYRPG_SHARED_PTR<ALCcontext> const &c, ALuint const s, bool loop)
-	    : ctx_(c)
-	    , src_(s)
+	source(ALuint const s, bool loop)
+	    : src_(s)
 	    , loop_count_(0)
 	    , fade_milli_(0)
 	    , volume_(1.0f)
@@ -156,9 +135,7 @@ struct ALAudio::source {
 	    , loop_play_(loop)
 	    , ticks_(BUFFER_NUMBER + 1)
 	    , buf_sizes_(BUFFER_NUMBER) {
-		SET_CONTEXT(c);
 		BOOST_ASSERT(alIsSource(s) == AL_TRUE);
-
 		alGenBuffers(BUFFER_NUMBER, buffers_.data());
 	}
 
@@ -185,8 +162,7 @@ struct ALAudio::source {
 	}
 
 	~source() {
-		SET_CONTEXT(ctx_);
-		alSourcePlay(src_);
+		stop();
 		alDeleteSources(1, &src_);
 	}
 
@@ -201,7 +177,6 @@ struct ALAudio::source {
 	unsigned sample_rate;
 
 private:
-	EASYRPG_SHARED_PTR<ALCcontext> ctx_;
 	ALuint src_;
 	unsigned loop_count_, fade_milli_;
 	ALfloat volume_;
@@ -226,10 +201,13 @@ private:
 	}
 
 public:
-	void set_volume(ALfloat const vol) {
-		SET_CONTEXT(ctx_);
-		volume_ = vol;
-		alSourcef(src_, AL_GAIN, vol);
+	void set_volume(int const vol) {
+		volume_ = vol * 0.01f;
+		alSourcef(src_, AL_GAIN, volume_);
+	}
+
+	void set_pitch(int p) {
+		alSourcef(src_, AL_PITCH, 0.01f * p);
 	}
 
 	void fade_out(unsigned const ms) {
@@ -257,29 +235,22 @@ public:
 				break;
 			}
 
-			if (loader_->is_end()) {
-				ticks_.push_back(0);
-			}
+			if (loader_->is_end()) { ticks_.push_back(0); }
 			buf_sizes_.push_back(loader_->load_buffer(unqueued[queuing_count]));
 			ticks_.push_back(loader_->midi_ticks());
 		}
 		alSourceQueueBuffers(src_, queuing_count, &unqueued.front());
 
 		if (fade_milli_ != 0) {
-			SET_CONTEXT(ctx_);
 			loop_count_++;
 
-			if (fade_ended()) {
-				alSourceStop(src_);
-			} else {
-				alSourcef(src_, AL_GAIN, current_volume());
-			}
+			if (fade_ended()) { stop(); }
+			else { alSourcef(src_, AL_GAIN, current_volume()); }
 		}
 	}
 
 	void set_buffer_loader(EASYRPG_SHARED_PTR<buffer_loader> const &l) {
-		SET_CONTEXT(ctx_);
-		alSourceStop(src_);
+		stop();
 		alSourcei(src_, AL_BUFFER, AL_NONE);
 
 		if (not l) {
@@ -306,7 +277,7 @@ public:
 			}
 		}
 		alSourceQueueBuffers(src_, queuing_count, buffers_.data());
-		alSourcePlay(src_);
+		play();
 	}
 
 	unsigned midi_ticks() const {
@@ -319,6 +290,9 @@ public:
 
 		return ticks_[0] + (ticks_[1] - ticks_[0]) * offset / buf_sizes_[0];
 	}
+
+	void stop() { alSourceStop(src_); }
+	void play() { alSourcePlay(src_); }
 };
 
 struct ALAudio::sndfile_loader : public ALAudio::buffer_loader {
@@ -425,8 +399,6 @@ private:
 
 EASYRPG_SHARED_PTR<ALAudio::buffer_loader>
 ALAudio::create_loader(source &src, std::string const &filename) const {
-	SET_CONTEXT(ctx_);
-
 	if (filename.empty()) {
 		Output::Error("Failed loading audio file: %s", filename.c_str());
 	}
@@ -450,14 +422,13 @@ void ALAudio::Update() {
 	bgs_src_->update();
 	me_src_->update();
 
-	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ++i) {
+	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ) {
 		i->get()->update();
 
 		ALenum state = AL_INVALID_VALUE;
 		alGetSourcei(i->get()->get(), AL_SOURCE_STATE, &state);
-		if (state == AL_STOPPED) {
-			i = se_src_.erase(i);
-		}
+		if (state == AL_STOPPED) { i = se_src_.erase(i); }
+		else { ++i; }
 	}
 }
 
@@ -470,8 +441,6 @@ ALAudio::ALAudio(char const *const dev_name) {
 
 	alcMakeContextCurrent(ctx_.get());
 
-	SET_CONTEXT(ctx_);
-
 	bgm_src_ = create_source(true);
 	bgs_src_ = create_source(true);
 	me_src_ = create_source(false);
@@ -482,28 +451,25 @@ ALAudio::ALAudio(char const *const dev_name) {
 }
 
 EASYRPG_SHARED_PTR<ALAudio::source> ALAudio::create_source(bool loop) const {
-	SET_CONTEXT(ctx_);
-
 	ALuint ret = AL_NONE;
 	alGenSources(1, &ret);
 	print_al_error();
 	BOOST_ASSERT(ret != AL_NONE);
 
-	return EASYRPG_MAKE_SHARED<source>(ctx_, ret, loop);
+	return EASYRPG_MAKE_SHARED<source>(ret, loop);
 }
 
 void ALAudio::BGM_Play(std::string const &file, int volume, int pitch, int fadein) {
 	SET_CONTEXT(ctx_);
-
-	alSourcef(bgm_src_->get(), AL_PITCH, pitch * 0.01f);
-	bgm_src_->set_volume(volume * 0.01f);
+	bgm_src_->set_pitch(pitch);
+	bgm_src_->set_volume(volume);
 	bgm_src_->set_buffer_loader(getMusic(*bgm_src_, file));
 	bgm_src_->fade_in(fadein);
 }
 
 void ALAudio::BGM_Stop() {
 	SET_CONTEXT(ctx_);
-	alSourceStop(bgm_src_->get());
+	bgm_src_->stop();
 }
 
 void ALAudio::BGM_Fade(int fade) {
@@ -518,21 +484,20 @@ void ALAudio::BGM_Pause() {
 
 void ALAudio::BGM_Resume() {
 	SET_CONTEXT(ctx_);
-	alSourcePlay(bgm_src_->get());
+	bgm_src_->play();
 }
 
 void ALAudio::BGS_Play(std::string const &file, int volume, int pitch, int fadein) {
 	SET_CONTEXT(ctx_);
-
-	BGM_Pitch(pitch);
-	BGM_Volume(volume);
-	bgm_src_->set_buffer_loader(getSound(*bgm_src_, file));
-	bgm_src_->fade_in(fadein);
+	bgs_src_->set_pitch(pitch);
+	bgs_src_->set_volume(volume);
+	bgs_src_->set_buffer_loader(getSound(*bgs_src_, file));
+	bgs_src_->fade_in(fadein);
 }
 
 void ALAudio::BGS_Stop() {
 	SET_CONTEXT(ctx_);
-	alSourceStop(bgs_src_->get());
+	bgs_src_->stop();
 }
 
 void ALAudio::BGS_Fade(int fade) {
@@ -542,26 +507,25 @@ void ALAudio::BGS_Fade(int fade) {
 
 void ALAudio::BGM_Volume(int volume) {
 	SET_CONTEXT(ctx_);
-	bgm_src_->set_volume(volume * 0.01f);
+	bgm_src_->set_volume(volume);
 }
 
 void ALAudio::BGM_Pitch(int pitch) {
 	SET_CONTEXT(ctx_);
-	alSourcef(bgs_src_->get(), AL_PITCH, pitch * 0.01f);
+	bgs_src_->set_pitch(pitch);
 }
 
 void ALAudio::ME_Play(std::string const &file, int volume, int pitch, int fadein) {
 	SET_CONTEXT(ctx_);
-
-	alSourcef(me_src_->get(), AL_PITCH, pitch * 0.01f);
-	me_src_->set_volume(volume * 0.01f);
+	me_src_->set_pitch(pitch);
+	me_src_->set_volume(volume);
 	me_src_->set_buffer_loader(getMusic(*me_src_, file));
 	me_src_->fade_in(fadein);
 }
 
 void ALAudio::ME_Stop() {
 	SET_CONTEXT(ctx_);
-	alSourceStop(me_src_->get());
+	me_src_->stop();
 }
 
 void ALAudio::ME_Fade(int fade) {
@@ -573,18 +537,14 @@ void ALAudio::SE_Play(std::string const &file, int volume, int pitch) {
 	SET_CONTEXT(ctx_);
 
 	EASYRPG_SHARED_PTR<source> src = create_source(false);
-
-	alSourcef(src->get(), AL_PITCH, pitch * 0.01f);
-	src->set_volume(volume * 0.01f);
-	src->set_buffer_loader(getSound(*src, file));
-
 	se_src_.push_back(src);
+
+	src->set_pitch(pitch);
+	src->set_volume(volume);
+	src->set_buffer_loader(getSound(*src, file));
 }
 
 void ALAudio::SE_Stop() {
 	SET_CONTEXT(ctx_);
-	for (source_list::iterator i = se_src_.begin(); i < se_src_.end(); ++i) {
-		alSourceStop(i->get()->get());
-	}
 	se_src_.clear();
 }
