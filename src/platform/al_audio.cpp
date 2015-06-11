@@ -224,23 +224,25 @@ public:
 	}
 
 	void update() {
-		ALint processed;
-		alGetSourceiv(src_, AL_BUFFERS_PROCESSED, &processed);
-		std::vector<ALuint> unqueued(processed);
-		alSourceUnqueueBuffers(src_, processed, &unqueued.front());
-		int queuing_count = 0;
-		for (; queuing_count < processed; ++queuing_count) {
-			if (not loop_play_ and loader_->is_end()) {
-				loader_.reset();
-				++queuing_count;
-				break;
-			}
+		if (loader_) {
+			ALint processed;
+			alGetSourceiv(src_, AL_BUFFERS_PROCESSED, &processed);
+			std::vector<ALuint> unqueued(processed);
+			alSourceUnqueueBuffers(src_, processed, &unqueued.front());
+			int queuing_count = 0;
+			for (; queuing_count < processed; ++queuing_count) {
+				if (not loop_play_ and loader_->is_end()) {
+					loader_.reset();
+					++queuing_count;
+					break;
+				}
 
-			if (loader_->is_end()) { ticks_.push_back(0); }
-			buf_sizes_.push_back(loader_->load_buffer(unqueued[queuing_count]));
-			ticks_.push_back(loader_->midi_ticks());
+				if (loader_->is_end()) { ticks_.push_back(0); }
+				buf_sizes_.push_back(loader_->load_buffer(unqueued[queuing_count]));
+				ticks_.push_back(loader_->midi_ticks());
+			}
+			alSourceQueueBuffers(src_, queuing_count, &unqueued.front());
 		}
-		alSourceQueueBuffers(src_, queuing_count, &unqueued.front());
 
 		if (fade_milli_ != 0) {
 			loop_count_++;
