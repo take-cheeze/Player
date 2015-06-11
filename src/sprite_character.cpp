@@ -119,11 +119,6 @@ void Sprite_Character::OnCharSpriteReady(FileRequestResult*) {
 
 	SetOx(chara_width / 2);
 	SetOy(chara_height);
-	int sx = (character_index % 4) * chara_width * 3;
-	int sy = (character_index / 4) * chara_height * 4;
-	Rect r;
-	r.Set(sx, sy, chara_width * 3, chara_height * 4);
-	SetSrcRect(r);
 
 	Update();
 }
