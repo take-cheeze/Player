@@ -202,39 +202,6 @@ BitmapRef Cache::Exfont() {
 	} else { return it->second.lock(); }
 }
 
-BitmapRef Cache::Tile(const std::string& filename, int tile_id) {
-	tile_pair const key(filename, tile_id);
-	cache_tiles_type::const_iterator const it = cache_tiles.find(key);
-
-	if (it == cache_tiles.end() || it->second.expired()) {
-		BitmapRef chipset = Cache::Chipset(filename);
-		Rect rect = Rect(0, 0, 16, 16);
-
-		int sub_tile_id = 0;
-
-		if (tile_id > 0 && tile_id < 48) {
-			sub_tile_id = tile_id;
-			rect.x += 288;
-			rect.y += 128;
-		} else if (tile_id >= 48 && tile_id < 96) {
-			sub_tile_id = tile_id - 48;
-			rect.x += 384;
-		} else if (tile_id >= 96 && tile_id < 144) {
-			sub_tile_id = tile_id - 96;
-			rect.x += 384;
-			rect.y += 128;
-		} else { // Invalid -> Use empty file (first one)
-			rect.x = 288;
-			rect.y = 128;
-		}
-
-		rect.x += sub_tile_id % 6 * 16;
-		rect.y += sub_tile_id / 6 * 16;
-
-		return(cache_tiles[key] = Bitmap::Create(*chipset, rect)).lock();
-	} else { return it->second.lock(); }
-}
-
 void Cache::Clear() {
 	for(cache_type::const_iterator i = cache.begin(); i != cache.end(); ++i) {
 		if(i->second.expired()) { continue; }

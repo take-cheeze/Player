@@ -102,12 +102,22 @@ void Sprite_Character::SetCharacter(Game_Character* new_character) {
 }
 
 void Sprite_Character::OnTileSpriteReady(FileRequestResult*) {
-	BitmapRef tile = Cache::Tile(Game_Map::GetChipsetName(), tile_id);
+	BitmapRef tile = Cache::Chipset(Game_Map::GetChipsetName());
 	SetBitmap(tile);
 
-	Rect r;
-	r.Set(0, 0, TILE_SIZE, TILE_SIZE);
-	SetSrcRect(r);
+	unsigned col, row;
+	// Get the tile coordinates from chipset
+	if (tile_id < 48) {
+		// If from first column of the block
+		col = 18 + tile_id % 6;
+		row = 8 + tile_id / 6;
+	} else {
+		// If from second column of the block
+		col = 24 + (tile_id - 48) % 6;
+		row = (tile_id - 48) / 6;
+	}
+
+	SetSrcRect(Rect(TILE_SIZE * col, TILE_SIZE * row, TILE_SIZE, TILE_SIZE));
 	SetOx(8);
 	SetOy(16);
 
