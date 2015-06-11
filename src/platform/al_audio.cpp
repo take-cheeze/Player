@@ -140,9 +140,10 @@ struct ALAudio::source {
 	}
 
 	void init_midi() {
-		if (synth) {
-			return;
+		if (not getenv("DEFAULT_SOUNDFONT")) {
+			Output::Error("Default sound font not found.");
 		}
+		if (synth) { return; }
 
 		settings.reset(new_fluid_settings(), &delete_fluid_settings);
 		fluid_settings_setstr(settings.get(), "player.timing-source", "sample");
@@ -444,10 +445,6 @@ ALAudio::ALAudio(char const *const dev_name) {
 	bgm_src_ = create_source(true);
 	bgs_src_ = create_source(true);
 	me_src_ = create_source(false);
-
-        if (not getenv("DEFAULT_SOUNDFONT")) {
-          Output::Error("Default sound font not found.");
-        }
 }
 
 EASYRPG_SHARED_PTR<ALAudio::source> ALAudio::create_source(bool loop) const {
