@@ -36,7 +36,6 @@ Sprite_Character::Sprite_Character(Game_Character* character) :
 
 void Sprite_Character::Update() {
 	Sprite::Update();
-	Rect r;
 	if (tile_id != character->GetTileId() ||
 		character_name != character->GetSpriteName() ||
 		character_index != character->GetSpriteIndex()) {
@@ -65,6 +64,7 @@ void Sprite_Character::Update() {
 	}
 
 	if (tile_id == 0) {
+		Rect r;
 		int row = character->GetSpriteDirection();
 		r.Set(character->GetPattern() * chara_width, row * chara_height, chara_width, chara_height);
 		r.x += (character_index % 4) * chara_width * 3;
