@@ -45,7 +45,7 @@
 #include "audio.h"
 
 #ifdef HAVE_SDL_MIXER
-#  include "sdl_audio.h"
+#  include "platform/sdl_audio.h"
 #endif
 #ifdef HAVE_OPENAL
 #  include "platform/al_audio.h"
