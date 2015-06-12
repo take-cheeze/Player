@@ -52,7 +52,7 @@
 
 #include <boost/optional.hpp>
 #include <boost/utility/string_ref.hpp>
-#include <boost/container/flat_map.hpp>
+#include <boost/unordered_map.hpp>
 
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -267,7 +267,7 @@ struct Program {
 	static std::vector<GLuint> released_;
 	optional<GLuint> program_;
 	EASYRPG_SHARED_PTR<Shader> vertex_, fragment_;
-	typedef boost::container::flat_map<std::string, GLint> loc_cache_type;
+	typedef boost::unordered_map<std::string, GLint> loc_cache_type;
 	loc_cache_type uni_loc_, attr_loc_;
 };
 
@@ -441,7 +441,7 @@ struct TextureRef {
 	EASYRPG_WEAK_PTR<Bitmap> bitmap;
 	EASYRPG_SHARED_PTR<Texture2D> texture;
 };
-typedef boost::container::flat_map<Bitmap*, TextureRef> texture_map_type;
+typedef boost::unordered_map<Bitmap*, TextureRef> texture_map_type;
 texture_map_type tex_map_;
 
 Texture2D& get_texture(BitmapRef const& bmp) {
