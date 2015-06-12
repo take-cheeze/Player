@@ -54,8 +54,8 @@ namespace {
 	int animation_type;
 	bool animation_fast;
 
-	std::vector<unsigned char> passages_down;
-	std::vector<unsigned char> passages_up;
+	std::vector<uint8_t> passages_down;
+	std::vector<uint8_t> passages_up;
 	tEventHash events;
 	tCommonEventHash common_events;
 
@@ -834,11 +834,11 @@ bool Game_Map::PrepareEncounter() {
 	return true;
 }
 
-std::vector<short>& Game_Map::GetMapDataDown() {
+std::vector<int16_t>& Game_Map::GetMapDataDown() {
 	return map->lower_layer;
 }
 
-std::vector<short>& Game_Map::GetMapDataUp() {
+std::vector<int16_t>& Game_Map::GetMapDataUp() {
 	return map->upper_layer;
 }
 
@@ -881,11 +881,11 @@ bool Game_Map::GetReady() {
 	return ready;
 }
 
-std::vector<unsigned char>& Game_Map::GetPassagesDown() {
+std::vector<uint8_t>& Game_Map::GetPassagesDown() {
 	return passages_down;
 }
 
-std::vector<unsigned char>& Game_Map::GetPassagesUp() {
+std::vector<uint8_t>& Game_Map::GetPassagesUp() {
 	return passages_up;
 }
 
@@ -897,7 +897,7 @@ int Game_Map::GetAnimationSpeed() {
 	return (animation_fast ? 12 : 24);
 }
 
-std::vector<short>& Game_Map::GetTerrainTags() {
+std::vector<int16_t>& Game_Map::GetTerrainTags() {
 	return Data::chipsets[map_info.chipset_id - 1].terrain_data;
 }
 
@@ -966,9 +966,9 @@ void Game_Map::SetChipset(int id) {
 	animation_type = chipset.animation_type;
 	animation_fast = chipset.animation_speed != 0;
 	if (passages_down.size() < 162)
-		passages_down.resize(162, (unsigned char) 0x0F);
+		passages_down.resize(162, 0x0F);
 	if (passages_up.size() < 144)
-		passages_up.resize(144, (unsigned char) 0x0F);
+		passages_up.resize(144, 0x0F);
 	for (uint8_t i = 0; i < 144; i++) {
 		map_info.lower_tiles[i] = i;
 		map_info.upper_tiles[i] = i;

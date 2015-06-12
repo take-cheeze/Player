@@ -317,14 +317,14 @@ namespace Game_Map {
 	 *
 	 * @return lower layer map data.
 	 */
-	std::vector<short>& GetMapDataDown();
+	std::vector<int16_t>& GetMapDataDown();
 
 	/**
 	 * Gets upper layer map data.
 	 *
 	 * @return upper layer map data.
 	 */
-	std::vector<short>& GetMapDataUp();
+	std::vector<int16_t>& GetMapDataUp();
 
 	/**
 	 * Gets chipset filename.
@@ -422,14 +422,14 @@ namespace Game_Map {
 	 *
 	 * @return lower passages list.
 	 */
-	std::vector<unsigned char>& GetPassagesDown();
+	std::vector<uint8_t>& GetPassagesDown();
 
 	/**
 	 * Gets upper passages list.
 	 *
 	 * @return upper passages list.
 	 */
-	std::vector<unsigned char>& GetPassagesUp();
+	std::vector<uint8_t>& GetPassagesUp();
 
 	/**
 	 * Gets chipset animation type.
@@ -450,7 +450,7 @@ namespace Game_Map {
 	 *
 	 * @return terrain tags list.
 	 */
-	std::vector<short>& GetTerrainTags();
+	std::vector<int16_t>& GetTerrainTags();
 
 	/**
 	 * Gets events list.

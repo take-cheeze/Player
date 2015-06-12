@@ -1166,9 +1166,19 @@ void Drawable::SetZ(int n_z) {
 bool Drawable::GetVisible() const { return visible; }
 void Drawable::SetVisible(bool v) { visible = v; }
 
-void TilemapLayer::DrawTile(BitmapRef const& screen, int x, int y, int row, int col, bool) {
-	render_texture(Rect(x, y, TILE_SIZE, TILE_SIZE), screen,
+void TilemapLayer::DrawTile(int x, int y, int row, int col) {
+	render_texture(Rect(x, y, TILE_SIZE, TILE_SIZE), chipset,
 		       Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE));
+}
+
+void TilemapLayer::DrawTile(int x, int y, TilemapLayer::subtile_coords const& coords) {
+	Rect r(0, 0, TILE_SIZE / 2, TILE_SIZE / 2);
+	for (size_t i = 0; i < coords.size(); ++i) {
+		if (coords[i].x == SKIP_SUBTILE) { continue; }
+		r.x = x + subtile_base[i][0];
+		r.y = y + subtile_base[i][1];
+		render_texture(r, chipset, coords[i]);
+	}
 }
 
 void Background::Draw() {

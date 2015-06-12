@@ -23,6 +23,7 @@
 #include <map>
 #include "system.h"
 #include "drawable.h"
+#include "rect.h"
 
 class TilemapLayer;
 
@@ -43,17 +44,20 @@ class TilemapLayer {
 public:
 	TilemapLayer(int ilayer);
 
-	void DrawTile(BitmapRef const& screen, int x, int y, int row, int col, bool autotile);
+	typedef EASYRPG_ARRAY<Rect, 4> subtile_coords;
+
+	void DrawTile(int x, int y, int row, int col);
+	void DrawTile(int x, int y, subtile_coords const& coords);
 	void Draw(int z_order);
 
 	void Update();
 
 	BitmapRef const& GetChipset() const;
 	void SetChipset(BitmapRef const& nchipset);
-	std::vector<short> GetMapData() const;
-	void SetMapData(const std::vector<short>& nmap_data);
-	std::vector<unsigned char> GetPassable() const;
-	void SetPassable(const std::vector<unsigned char>& npassable);
+	std::vector<int16_t> const& GetMapData() const;
+	void SetMapData(const std::vector<int16_t>& nmap_data);
+	std::vector<uint8_t> const& GetPassable() const;
+	void SetPassable(const std::vector<uint8_t>& npassable);
 	int GetOx() const;
 	void SetOx(int nox);
 	int GetOy() const;
@@ -73,7 +77,7 @@ public:
 
 private:
 	BitmapRef chipset;
-	std::vector<short> map_data;
+	std::vector<int16_t> map_data;
 	std::vector<uint8_t> passable;
 	std::vector<uint8_t> substitutions;
 	bool visible;
@@ -88,35 +92,16 @@ private:
 	int animation_type;
 	int layer;
 
-	void CreateTileCache(const std::vector<short>& nmap_data);
-	void GenerateAutotileAB(short ID, short animID);
-	void GenerateAutotileD(short ID);
+	void CreateTileCache(const std::vector<int16_t>& nmap_data);
 
-	static const int TILES_PER_ROW = 64;
-
-	struct TileXY {
-		uint8_t x;
-		uint8_t y;
-		bool valid;
-		TileXY() : valid(false) {}
-		TileXY(uint8_t x, uint8_t y) : x(x), y(y), valid(true) {}
-	};
-
-	BitmapRef GenerateAutotiles(int count, const std::map<uint32_t, TileXY>& map);
-
-	TileXY GetCachedAutotileAB(short ID, short animID);
-	TileXY GetCachedAutotileD(short ID);
-	BitmapRef autotiles_ab_screen;
-	BitmapRef autotiles_d_screen;
+	static uint8_t const subtile_base[4][2];
+	enum { SKIP_SUBTILE = -1 };
+	subtile_coords sea_subtiles, seaside_subtiles, terrain_subtiles;
+	void sea_pattern(unsigned id, unsigned anime);
+	void terrain_pattern(unsigned id);
 
 	int autotiles_ab_next;
 	int autotiles_d_next;
-
-	TileXY autotiles_ab[3][3][16][47];
-	TileXY autotiles_d[12][50];
-
-	std::map<uint32_t, TileXY> autotiles_ab_map;
-	std::map<uint32_t, TileXY> autotiles_d_map;
 
 	struct TileData {
 		short ID;

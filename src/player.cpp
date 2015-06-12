@@ -234,6 +234,7 @@ void Player::Update(bool update_scene) {
 	}
 	if (Input::IsTriggered(Input::SHOW_LOG)) {
 		Output::ToggleLog();
+	Output::Warning("Drawing message overlay");
 	}
 
 	DisplayUi->ProcessEvents();
