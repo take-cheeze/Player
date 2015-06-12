@@ -1164,18 +1164,68 @@ void Drawable::SetZ(int n_z) {
 bool Drawable::GetVisible() const { return visible; }
 void Drawable::SetVisible(bool v) { visible = v; }
 
+void TilemapLayer::prepare_draw() {
+	Graphics::Program& prog = *Graphics::sprite_program;
+	prog.use();
+
+	Graphics::Texture2D& tex = Graphics::get_texture(chipset);
+	tex.bind();
+
+	glUniform1f(prog.uniform_location("u_opacity"), 1.f);
+	glUniform1f(prog.uniform_location("u_bush_opacity"), 1.f);
+	glUniform1f(prog.uniform_location("u_bush_depth"), 0.f);
+	glUniform4f(prog.uniform_location("u_color"), 0.f, 0.f, 0.f, 0.f);
+	glUniform4f(prog.uniform_location("u_tone"), 0.f, 0.f, 0.f, 0.f);
+	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex.matrix()));
+	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(glm::mat4()));
+
+	a_position_idx = prog.attrib_location("a_position");
+	a_tex_coord_idx = prog.attrib_location("a_tex_coord");
+}
+
 void TilemapLayer::DrawTile(int x, int y, int row, int col) {
-	render_texture(Rect(x, y, TILE_SIZE, TILE_SIZE), chipset,
-		       Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE));
+	for (int i = 0; i < 4; ++i) {
+		dst_coord[2 * i + 0] = x;
+		dst_coord[2 * i + 1] = y;
+		src_coord[2 * i + 0] = TILE_SIZE * col;
+		src_coord[2 * i + 1] = TILE_SIZE * row;
+	}
+	dst_coord[2 * 1 + 0] += TILE_SIZE;
+	dst_coord[2 * 2 + 0] += TILE_SIZE;
+	dst_coord[2 * 2 + 1] += TILE_SIZE;
+	dst_coord[2 * 3 + 1] += TILE_SIZE;
+	src_coord[2 * 1 + 0] += TILE_SIZE;
+	src_coord[2 * 2 + 0] += TILE_SIZE;
+	src_coord[2 * 2 + 1] += TILE_SIZE;
+	src_coord[2 * 3 + 1] += TILE_SIZE;
+
+	glVertexAttribPointer(a_position_idx, 2, GL_SHORT, GL_FALSE, 0, dst_coord.data());
+	glVertexAttribPointer(a_tex_coord_idx, 2, GL_SHORT, GL_FALSE, 0, src_coord.data());
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 void TilemapLayer::DrawTile(int x, int y, TilemapLayer::subtile_coords const& coords) {
-	Rect r(0, 0, TILE_SIZE / 2, TILE_SIZE / 2);
 	for (size_t i = 0; i < coords.size(); ++i) {
-		if (coords[i].x == SKIP_SUBTILE) { continue; }
-		r.x = x + subtile_base[i][0];
-		r.y = y + subtile_base[i][1];
-		render_texture(r, chipset, coords[i]);
+		if (coords[i][0] == SKIP_SUBTILE) { continue; }
+
+		for (int j = 0; j < 4; ++j) {
+			dst_coord[2 * j + 0] = x + subtile_base[i][0];
+			dst_coord[2 * j + 1] = y + subtile_base[i][1];
+			src_coord[2 * j + 0] = coords[i][0];
+			src_coord[2 * j + 1] = coords[i][1];
+		}
+		dst_coord[2 * 1 + 0] += TILE_SIZE / 2;
+		dst_coord[2 * 2 + 0] += TILE_SIZE / 2;
+		dst_coord[2 * 2 + 1] += TILE_SIZE / 2;
+		dst_coord[2 * 3 + 1] += TILE_SIZE / 2;
+		src_coord[2 * 1 + 0] += TILE_SIZE / 2;
+		src_coord[2 * 2 + 0] += TILE_SIZE / 2;
+		src_coord[2 * 2 + 1] += TILE_SIZE / 2;
+		src_coord[2 * 3 + 1] += TILE_SIZE / 2;
+
+		glVertexAttribPointer(a_position_idx, 2, GL_SHORT, GL_FALSE, 0, dst_coord.data());
+		glVertexAttribPointer(a_tex_coord_idx, 2, GL_SHORT, GL_FALSE, 0, src_coord.data());
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 }
 

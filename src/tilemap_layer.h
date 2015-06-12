@@ -44,7 +44,7 @@ class TilemapLayer {
 public:
 	TilemapLayer(int ilayer);
 
-	typedef EASYRPG_ARRAY<Rect, 4> subtile_coords;
+	typedef EASYRPG_ARRAY<EASYRPG_ARRAY<int, 2>, 4> subtile_coords;
 
 	void DrawTile(int x, int y, int row, int col);
 	void DrawTile(int x, int y, subtile_coords const& coords);
@@ -99,6 +99,10 @@ private:
 	subtile_coords sea_subtiles, seaside_subtiles, terrain_subtiles;
 	void sea_pattern(unsigned id, unsigned anime);
 	void terrain_pattern(unsigned id);
+
+	EASYRPG_ARRAY<short, 2 * 4> dst_coord, src_coord;
+	int a_position_idx, a_tex_coord_idx;
+	void prepare_draw();
 
 	int autotiles_ab_next;
 	int autotiles_d_next;

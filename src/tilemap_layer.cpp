@@ -96,8 +96,8 @@ void  TilemapLayer::sea_pattern(unsigned id, unsigned anime) {
 	unsigned const sea_on_y = x == 2? 2 : 1, sea_off_y = x == 2? 3 : 0;
 	// from block B
 	for (int i = 0; i < 4; ++i) {
-		sea_subtiles[i].x = subtile_base[i][0] + TILE_SIZE * anime;
-		sea_subtiles[i].y = subtile_base[i][1] + TILE_SIZE * (4 + ((y & (0x1 << i))? sea_on_y : sea_off_y));
+		sea_subtiles[i][0] = subtile_base[i][0] + TILE_SIZE * anime;
+		sea_subtiles[i][1] = subtile_base[i][1] + TILE_SIZE * (4 + ((y & (0x1 << i))? sea_on_y : sea_off_y));
 	}
 
 	// from block A1, A2
@@ -105,11 +105,11 @@ void  TilemapLayer::sea_pattern(unsigned id, unsigned anime) {
 	for (int i = 0; i < 4; ++i) {
 		unsigned const seaside_y = (BlockA_Subtiles_IDS[z] >> (4 * i)) & 0xf;
 		if (seaside_y == 0xf) {
-			seaside_subtiles[i].x = SKIP_SUBTILE;
+			seaside_subtiles[i][0] = SKIP_SUBTILE;
 			continue;
 		}
-		seaside_subtiles[i].x = subtile_base[i][0] + TILE_SIZE * (seaside_x + anime);
-		seaside_subtiles[i].y = subtile_base[i][1] + TILE_SIZE * (seaside_y);
+		seaside_subtiles[i][0] = subtile_base[i][0] + TILE_SIZE * (seaside_x + anime);
+		seaside_subtiles[i][1] = subtile_base[i][1] + TILE_SIZE * (seaside_y);
 	}
 }
 
@@ -177,8 +177,8 @@ void TilemapLayer::terrain_pattern(unsigned id) {
 
 	for (int i = 0; i < 4; ++i) {
 		unsigned const coord = (BlockD_Subtiles_IDS[y] >> (4 * i)) & 0xf;
-		terrain_subtiles[i].x = subtile_base[i][0] + TILE_SIZE * (block_x + (coord & 0x3));
-		terrain_subtiles[i].y = subtile_base[i][1] + TILE_SIZE * (block_y + ((coord >> 2) & 0x3));
+		terrain_subtiles[i][0] = subtile_base[i][0] + TILE_SIZE * (block_x + (coord & 0x3));
+		terrain_subtiles[i][1] = subtile_base[i][1] + TILE_SIZE * (block_y + ((coord >> 2) & 0x3));
 	}
 }
 
@@ -198,21 +198,12 @@ TilemapLayer::TilemapLayer(int ilayer) :
 	for (int i = 0; i < tiles_y + 2; i++) {
 		tilemap_tiles.push_back(EASYRPG_MAKE_SHARED<TilemapTile>(this, TILE_SIZE * i));
 	}
-
-	// sea, seaside, terrain's each width and height must be initialized with 8
-	for (size_t i = 0; i < sea_subtiles.size(); ++i) {
-		sea_subtiles[i].width = sea_subtiles[i].height = TILE_SIZE / 2;
-	}
-	for (size_t i = 0; i < seaside_subtiles.size(); ++i) {
-		seaside_subtiles[i].width = seaside_subtiles[i].height = TILE_SIZE / 2;
-	}
-	for (size_t i = 0; i < terrain_subtiles.size(); ++i) {
-		terrain_subtiles[i].width = terrain_subtiles[i].height = TILE_SIZE / 2;
-	}
 }
 
 void TilemapLayer::Draw(int z_order) {
 	if (!visible) return;
+
+	prepare_draw();
 
 	// Get the number of tiles that can be displayed on window
 	int tiles_x = ceil(SCREEN_TARGET_WIDTH / (float)TILE_SIZE);
@@ -222,8 +213,6 @@ void TilemapLayer::Draw(int z_order) {
 	// to prevent black (empty) tiles at the borders
 	if (ox % TILE_SIZE != 0) { ++tiles_x; }
 	if (oy % TILE_SIZE != 0) { ++tiles_y; }
-
-	subtile_coords sub1, sub2;
 
 	for (int x = 0; x < tiles_x; x++) {
 		for (int y = 0; y < tiles_y; y++) {
