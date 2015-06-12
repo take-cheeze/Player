@@ -194,10 +194,6 @@ struct Program {
 	}
 
 	void use() {
-		// unbind buffers before using program
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 		glUseProgram(get_handle());
 	}
 
@@ -892,6 +888,10 @@ void Graphics::DrawFrame() {
 	assert(screen_fbo_program->validate());
 
 	DisplayUi->UpdateDisplay();
+
+	// unbind buffers
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	clear_gl_objects();
 	check_gl_error();
