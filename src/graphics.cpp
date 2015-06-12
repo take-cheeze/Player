@@ -604,10 +604,8 @@ void render_texture(
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
 	glUniform4f(prog.uniform_location("u_tone"),
 		    eff.tone.red / 255.f, eff.tone.green / 255.f, eff.tone.blue / 255.f, eff.tone.gray / 255.f);
-	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"),
-			   1, GL_FALSE, glm::value_ptr(tex_mat));
-	glUniformMatrix4fv(prog.uniform_location("u_model_mat"),
-			   1, GL_FALSE, glm::value_ptr(model_mat));
+	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex_mat));
+	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(model_mat));
 
 	if (eff.waver_depth == 0) {
 		EASYRPG_ARRAY<GLshort, 2 * 4> dst_coord, src_coord;
