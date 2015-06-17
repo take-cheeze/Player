@@ -337,11 +337,8 @@ struct Texture2D {
 		height_ = h;
 	}
 
-	glm::mat4 matrix() const {
-		glm::mat4 m;
-		// m = glm::translate(m, glm::vec3(0.f, 1.f, 0.f));
-		m = glm::scale(m, glm::vec3(1.f / width_.get(), 1.f / height_.get(), 1.f));
-		return m;
+	glm::vec2 scale() const {
+		return glm::vec2(1.f / width_.get(), 1.f / height_.get());
 	}
 
 	static void clear_released() {
@@ -592,7 +589,6 @@ void render_texture(
 
 	Texture2D& tex = get_texture(bmp);
 	tex.bind();
-	glm::mat4 tex_mat = tex.matrix();
 	glm::mat4 model_mat = eff.model_matrix();
         model_mat = glm::translate(model_mat, glm::vec3(dst_rect.x, dst_rect.y, 0));
 
@@ -604,7 +600,7 @@ void render_texture(
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
 	glUniform4f(prog.uniform_location("u_tone"),
 		    eff.tone.red / 255.f, eff.tone.green / 255.f, eff.tone.blue / 255.f, eff.tone.gray / 255.f);
-	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex_mat));
+	glUniform2fv(prog.uniform_location("u_tex_scale"), 1, glm::value_ptr(tex.scale()));
 	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(model_mat));
 
 	if (eff.waver_depth == 0) {
@@ -685,13 +681,13 @@ void tiled_render_texture(
 
 	Texture2D& tex = get_texture(bmp);
 	tex.bind();
-	glm::mat4 tex_mat = tex.matrix();
+	glm::vec2 tex_scale = tex.scale();
 	glm::mat4 model_mat = eff.model_matrix();
         model_mat = glm::translate(model_mat, glm::vec3(dst_rect.x, dst_rect.y, 0.f));
 	model_mat = glm::translate(model_mat, glm::vec3(eff.ox, eff.oy, 0.f));
 
 	glUniform2fv(prog.uniform_location("u_tex_base_coord"), 1,
-		     glm::value_ptr(glm::vec2(src_rect.x, src_rect.y) / glm::vec2(tex.width(), tex.height())));
+		     glm::value_ptr(glm::vec2(src_rect.x, src_rect.y) * tex_scale));
 	glUniform2f(prog.uniform_location("u_tex_range"),
 		    GLfloat(src_rect.width) / tex.width(),
 		    GLfloat(src_rect.height) / tex.height());
@@ -700,7 +696,7 @@ void tiled_render_texture(
 		    eff.color.red / 255.f, eff.color.green / 255.f, eff.color.blue / 255.f, eff.color.alpha / 255.f);
 	glUniform4f(prog.uniform_location("u_tone"),
 		    eff.tone.red / 255.f, eff.tone.green / 255.f, eff.tone.blue / 255.f, eff.tone.gray / 255.f);
-	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex_mat));
+	glUniform2fv(prog.uniform_location("u_tex_scale"), 1, glm::value_ptr(tex_scale));
 	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(model_mat));
 
 	EASYRPG_ARRAY<GLshort, 2 * 4> dst_coord, src_coord;
@@ -1176,7 +1172,7 @@ void TilemapLayer::prepare_draw() {
 	glUniform1f(prog.uniform_location("u_bush_depth"), 0.f);
 	glUniform4f(prog.uniform_location("u_color"), 0.f, 0.f, 0.f, 0.f);
 	glUniform4f(prog.uniform_location("u_tone"), 0.f, 0.f, 0.f, 0.f);
-	glUniformMatrix4fv(prog.uniform_location("u_tex_mat"), 1, GL_FALSE, glm::value_ptr(tex.matrix()));
+	glUniform2fv(prog.uniform_location("u_tex_scale"), 1, glm::value_ptr(tex.scale()));
 	glUniformMatrix4fv(prog.uniform_location("u_model_mat"), 1, GL_FALSE, glm::value_ptr(glm::mat4()));
 
 	a_position_idx = prog.attrib_location("a_position");
